@@ -33,6 +33,11 @@ it is utilized to make that value available for the calculation of t*/
 }
 
 float calculate_t(int &sequence_size)
+/*This function is utilized to calculate the t-threshold parameter
+based on the equation t <= M - n/4)/72, where:
+M -> memory in bytes
+n/4 -> input string compressed to 1/4 bytes per characted
+72 -> bytes per tree for a single suffix link*/
 {
   float total_ram = get_total_ram_bytes();
   float t = (total_ram - sequence_size / 4) / 72;
