@@ -8,10 +8,9 @@
 #include <regex>
 using namespace std;
 
-bool evalInequality(vector<string> extendSet, int currLength, int prevLength) {
-
+int evalInequality(vector<string> extendSet, int currLength, int prevLength) {
     int sum{0};
-    for (size_t i = 0; i < (currLength - prevLength); i++)
+    for (size_t i = 1; i <= (currLength - prevLength); i++)
     {
         sum = sum + 4^i;
     }
@@ -19,7 +18,7 @@ bool evalInequality(vector<string> extendSet, int currLength, int prevLength) {
     return extendSet.size() * sum;
 }
 
-int extendPrefixes(vector<string>& extendSet, char (&letterSet)[4]) {
+void extendPrefixes(vector<string>& extendSet, char (&letterSet)[4]) {
     int index{0};
 
     vector<string> vectorForExtension(extendSet);
@@ -31,15 +30,13 @@ int extendPrefixes(vector<string>& extendSet, char (&letterSet)[4]) {
             index += 1;
         }
     }
-    return 1;
 }
 
-int printVector(vector<string>& vector) {
+void printVector(vector<string>& vector) {
     for (string i: vector) {
         std::cout << i << ' ';
     }
     std::cout << "\n";
-    return 1;
 }
 
 int countSubstring(string& text, string target) {
@@ -55,7 +52,7 @@ int countSubstring(string& text, string target) {
     return counter;
 }
 
-int clearEmpties(vector<string>& extendSet) {
+void clearEmpties(vector<string>& extendSet) {
     vector<string> newExtendSet;
     for (string prefix: extendSet) {
         if (!prefix.empty()) {
@@ -63,7 +60,6 @@ int clearEmpties(vector<string>& extendSet) {
         }
     }
     extendSet = newExtendSet;
-    return 1;
 }
 
 string readFile(string fileName) {
@@ -89,11 +85,9 @@ int main() {
     char alphabet[4] {'a', 'g', 'c', 't'};
     vector<string> extendVector{""};
     vector<string> prefixVector;
-    vector<string> newExtendVector;
 
     int length{0};
     int prevLength{0};
-    bool stop{false};
 
     // extendPrefixes(extendVector, alphabet);
     // int index{0};
