@@ -2,7 +2,8 @@
 #include <iostream>
 #include <string>
 #include <set>
-// Relevant system libaries for windoes and linux systems
+#include <cmath>
+// Relevant system libaries for windows and linux systems
 // If the system is windows, include the windows.h library
 #ifdef _WIN32
 #include <Windows.h>
@@ -13,7 +14,7 @@
 
 using namespace std;
 
-// Use either the windoes or linux specific code to get the total ram
+// Use either the windows or linux specific code to get the total ram
 float get_total_ram_bytes()
 /*This function returns the total memory of a windows or linxus system in bytes,
 it is utilized to make that value available for the calculation of t*/
@@ -32,14 +33,24 @@ it is utilized to make that value available for the calculation of t*/
 #endif
 }
 
-float calculate_t(int &sequence_size)
+float calculate_t(int &sequence_size, bool limit = false, int limit_memory_to = 2)
 /*This function is utilized to calculate the t-threshold parameter
 based on the equation t <= M - n/4)/72, where:
 M -> memory in bytes
 n/4 -> input string compressed to 1/4 bytes per characted
 72 -> bytes per tree for a single suffix link*/
 {
-  float total_ram = get_total_ram_bytes();
-  float t = (total_ram - sequence_size / 4) / 72;
-  return t;
+  if (limit == false)
+  {
+    float total_ram = get_total_ram_bytes();
+    float t = (total_ram - sequence_size / 4) / 72;
+    return t;
+  }
+  else
+  {
+    // convert GB to bytes
+    float total_ram = limit_memory_to * pow(2, 30);
+    float t = (total_ram - sequence_size / 4) / 72;
+    return t;
+  }
 }
