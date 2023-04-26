@@ -1,6 +1,7 @@
 #include <regex>
 #include <iostream>
 #include <string>
+#include <vector>
 #include <set>
 #include <cmath>
 // Relevant system libaries for windows and linux systems
@@ -40,17 +41,24 @@ M -> memory in bytes
 n/4 -> input string compressed to 1/4 bytes per characted
 72 -> bytes per tree for a single suffix link*/
 {
+  float total_ram = get_total_ram_bytes();
   if (limit == false)
   {
-    float total_ram = get_total_ram_bytes();
     float t = (total_ram - sequence_size / 4) / 72;
-    return t;
+    return (int)t;
   }
   else
   {
     // convert GB to bytes
-    float total_ram = limit_memory_to * pow(2, 30);
-    float t = (total_ram - sequence_size / 4) / 72;
-    return t;
+    float limited_ram = limit_memory_to * pow(2, 30);
+    if (limited_ram > total_ram)
+    {
+      throw invalid_argument("Limited RAM cannot exceed your system available RAM");
+    }
+    else
+    {
+      float t = (limited_ram - sequence_size / 4) / 72;
+      return (int)t;
+    }
   }
 }
