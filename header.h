@@ -1,3 +1,5 @@
+#include <vector>
+#include <string>
 // my_header.h
 
 #ifndef MY_HEADER_H
@@ -6,6 +8,6 @@
 // Function declaration(s)
 float get_total_ram_bytes();
 
-float calculate_t(int &sequence_size, bool limit = false, int limit_memory_to = 2);
+long long int calculate_t(long long int &sequence_size, bool limit = false, int limit_memory_to = 0);
 
 #endif // MY_HEADER_H
