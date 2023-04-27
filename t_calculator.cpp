@@ -13,8 +13,10 @@ using namespace std;
 
 // Use either the windows or linux specific code to get the total ram
 long long int get_total_ram_bytes()
-/*This function returns the total memory of a windows or linxus system in bytes,
-it is utilized to make that value available for the calculation of t*/
+/**
+ *This function returns the total memory of a windows or linxus system in bytes,
+it is utilized to make that value available for the calculation of t
+ */
 {
 #ifdef _WIN32
   // Windows-specific code
@@ -30,12 +32,15 @@ it is utilized to make that value available for the calculation of t*/
 #endif
 }
 
-long long int calculate_t(long long int &sequence_size, bool limit = false, int limit_memory_to = 0)
-/*This function is utilized to calculate the t-threshold parameter
-based on the equation t <= M - n/4)/72, where:
-M -> memory in bytes
-n/4 -> input string compressed to 1/4 bytes per characted
-72 -> bytes per tree for a single suffix link*/
+long long int calculate_t(long long int &sequence_size, bool limit = false, int limit_memory_to = 2)
+/**
+ * Computes t, a crucial threshold for the memory mamagement of the Algorithm
+ *
+ * @param sequence_size The size of the input dna sequence.
+ * @param limit whether or not to allow for memory limitation
+ * @param limit_memory_to memory limit in GB
+ * @return The threshold t (long long int).
+ */
 {
   long long int total_ram = get_total_ram_bytes();
   if (limit == false)
