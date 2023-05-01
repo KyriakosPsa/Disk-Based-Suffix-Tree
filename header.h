@@ -15,6 +15,6 @@ long long int calculate_t(long long int &sequence_size,
                           bool limit = false);
 
 // File handling utilities
-long long int seq_length_from_file(string &filename);
+string readFile(string &filename);
 
 #endif

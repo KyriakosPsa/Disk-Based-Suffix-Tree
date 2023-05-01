@@ -10,14 +10,15 @@ using namespace std;
 int main()
 {
   // ask for the filename
-  string file_input;
-  cout << "Please pass the name of the file containing the DNA sequence";
-  cin >> file_input;
-  // find the sequence_size from the file
-  // string filename;
-  // cout << "Enter the DNA sequence filename: \n";
-  // cin >> filename;
-  long long int seq_size = 3200000000;
+  string file_input_text;
+  string input_sequence;
+  long long int input_sequence_len = 0;
+  cout << "Please pass the name of the file containing the DNA sequence\n";
+  cin >> file_input_text;
+  // Read the file and
+  input_sequence = readFile(file_input_text);
+  input_sequence_len = input_sequence.length();
+  cout << "Sequence length is: " << input_sequence_len << "\n";
 
   // Initialize variables for the calculation of t
   long long int limited_ram_bytes = 0;
@@ -46,7 +47,7 @@ int main()
   // Calculate t, throw error if limit_memory > available RAM
   if (limited_ram_bytes < available_total_RAM)
   {
-    long long int t = calculate_t(seq_size,
+    long long int t = calculate_t(input_sequence_len,
                                   available_total_RAM,
                                   limited_ram_bytes,
                                   limit_memory_bool);
