@@ -14,7 +14,6 @@ long long int calculate_t(long long int &sequence_size,
                           long long int limit_memory_bytes,
                           bool limit = false);
 
-// File handling utilities
-long long int seq_length_from_file(string &filename);
+float calculate_t(int &sequence_size, bool limit = false, int limit_memory_to = 2);
 
 #endif
