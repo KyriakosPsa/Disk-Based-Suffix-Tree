@@ -9,6 +9,10 @@ using namespace std;
 
 int main()
 {
+  // ask for the filename
+  string file_input;
+  cout << "Please pass the name of the file containing the DNA sequence";
+  cin >> file_input;
   // find the sequence_size from the file
   // string filename;
   // cout << "Enter the DNA sequence filename: \n";
@@ -16,7 +20,7 @@ int main()
   long long int seq_size = 3200000000;
 
   // Initialize variables for the calculation of t
-  long long int limited_ram_bytes;
+  long long int limited_ram_bytes = 0;
   int limited_memory_GB;
   char answer;
   bool limit_memory_bool;
@@ -35,27 +39,22 @@ int main()
   {
     limit_memory_bool = false;
   }
+
   // Get the total available memory
   long long int available_total_RAM = get_total_ram_bytes();
+
   // Calculate t, throw error if limit_memory > available RAM
-  try
+  if (limited_ram_bytes < available_total_RAM)
   {
-    if (limited_ram_bytes < available_total_RAM)
-    {
-      long long int t = calculate_t(seq_size,
-                                    available_total_RAM,
-                                    limit_memory_bool,
-                                    limited_ram_bytes);
-      cout << "The value of t is:\n"
-           << t;
-    }
-    else
-    {
-      throw invalid_argument("Limited memory cannot be higher than available system RAM");
-    }
+    long long int t = calculate_t(seq_size,
+                                  available_total_RAM,
+                                  limited_ram_bytes,
+                                  limit_memory_bool);
+    cout << "The value of t is:\n"
+         << t;
   }
-  catch (invalid_argument &e)
+  else
   {
-    cerr << e.what() << "\n";
+    cerr << "ERROR: Limited memory cannot be higher than available system RAM";
   }
 }

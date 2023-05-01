@@ -1,13 +1,20 @@
 #include <vector>
 #include <string>
-// my_header.h
 
 #ifndef MY_HEADER_H
 #define MY_HEADER_H
 
 // Function declaration(s)
-float get_total_ram_bytes();
 
-long long int calculate_t(long long int &sequence_size, bool limit = false, int limit_memory_to = 0);
+// Memory managment utilites
+long long int get_total_ram_bytes();
 
-#endif // MY_HEADER_H
+long long int calculate_t(long long int &sequence_size,
+                          long long int &total_ram,
+                          long long int limit_memory_bytes,
+                          bool limit = false);
+
+// File handling utilities
+long long int seq_length_from_file(string &filename);
+
+#endif

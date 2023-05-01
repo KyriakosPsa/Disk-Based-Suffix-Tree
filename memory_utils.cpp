@@ -33,8 +33,8 @@ long long int get_total_ram_bytes()
 
 long long int calculate_t(long long int &sequence_size,
                           long long int &total_ram,
-                          bool limit = false,
-                          long long int limit_memory_bytes = 0)
+                          long long int limit_memory_bytes,
+                          bool limit = false)
 /**
  * Computes t, a crucial threshold for the memory mamagement of the Algorithm
  *
@@ -42,7 +42,6 @@ long long int calculate_t(long long int &sequence_size,
  * @param total_ram The total available system RAM
  * @param limit whether or not to allow for memory limitation
  * @param limit_memory_bytes memory limit in GB
- * @return The threshold t (long long int).
  */
 {
   if (limit == false)
