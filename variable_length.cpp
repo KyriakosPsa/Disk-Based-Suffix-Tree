@@ -152,7 +152,7 @@ int main() {
                 int freq = readAndCompare(sequenceFile, prefix);
                 sequenceFile.clear();                 
                 sequenceFile.seekg(0, std::ios::beg);
-                std::cout << prefix + " " << freq << "\n";
+                // std::cout << prefix + " " << freq << "\n";
                 if (freq <= t) {
                     prefixVector.push_back(prefix);
                     extendVector[index] = "";
