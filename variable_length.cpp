@@ -173,7 +173,7 @@ int main() {
 
     std::ofstream output_file("./prefixes.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
-    // std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
+    std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
 
     auto t2 = high_resolution_clock::now();
 
