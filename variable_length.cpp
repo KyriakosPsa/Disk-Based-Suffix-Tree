@@ -23,57 +23,69 @@ void extendPrefixes(vector<string>& extendSet, char (&letterSet)[4]) {
     size_t index{0};
 
     vector<string> vectorForExtension(extendSet);
-    extendSet.resize(extendSet.size()*4);
+    extendSet.resize(extendSet.size() * 4);
 
-    for (string prefix: vectorForExtension) {
-        for (char letter: letterSet) {
+    for (string prefix : vectorForExtension)
+    {
+        for (char letter : letterSet)
+        {
             extendSet[index] = prefix + letter;
             index += 1;
         }
     }
 }
 
-void printVector(vector<string>& vector) {
-    for (string i: vector) {
+void printVector(vector<string> &vector)
+{
+    for (string i : vector)
+    {
         std::cout << i << ' ';
     }
     std::cout << "\n";
 }
 
-int countSubstring(string& text, string target) {
+int countSubstring(string &text, string target)
+{
     size_t n = text.length();
     size_t target_n = target.length();
-    int counter {};
-    for (size_t i = 0; i < n; i++) {
+    int counter{};
+    for (size_t i = 0; i < n; i++)
+    {
         int result = text.compare(i, target_n, target);
-        if (result == 0) {
+        if (result == 0)
+        {
             counter++;
         }
     }
     return counter;
 }
 
-void clearEmpties(vector<string>& extendSet) {
+void clearEmpties(vector<string> &extendSet)
+{
     vector<string> newExtendSet;
-    for (string prefix: extendSet) {
-        if (!prefix.empty()) {
+    for (string prefix : extendSet)
+    {
+        if (!prefix.empty())
+        {
             newExtendSet.push_back(prefix);
         }
     }
     extendSet = newExtendSet;
 }
 
-string readFile(string fileName) {
+string readFile(string fileName)
+{
     ifstream myFile(fileName);
-    string dna {};
-    if (myFile) {
-        ostringstream stringStream {};
+    string dna{};
+    if (myFile)
+    {
+        ostringstream stringStream{};
         stringStream << myFile.rdbuf();
         dna = stringStream.str();
     }
     dna = regex_replace(
-        dna, 
-        regex("\\r\\n|\\r|\\n"), 
+        dna,
+        regex("\\r\\n|\\r|\\n"),
         "");
     myFile.close();
     return dna;
@@ -142,9 +154,11 @@ int main() {
     // std::cout << extendVector.size() << "\n";
     // printVector(extendVector);
     // printVector(prefixVector);
-    
-    while (true) {
-        while (evalInequality(extendVector, length, prevLength) <= t) {
+
+    while (true)
+    {
+        while (evalInequality(extendVector, length, prevLength) <= t)
+        {
             length += 1;
             extendPrefixes(extendVector, alphabet);
             size_t index{0};
@@ -161,14 +175,16 @@ int main() {
             }
 
             clearEmpties(extendVector);
-            if (extendVector.size() == 0) {
+            if (extendVector.size() == 0)
+            {
                 break;
             }
         }
         prevLength = length;
-        if (extendVector.size() == 0) {
-                break;
-            }
+        if (extendVector.size() == 0)
+        {
+            break;
+        }
     }
 
     std::ofstream output_file("./prefixes.txt");
