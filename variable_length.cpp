@@ -3,25 +3,25 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <array>
 #include <iterator>
 #include <vector>
 #include <regex>
+#include <chrono>
 using namespace std;
 
-int evalInequality(vector<string> extendSet, int currLength, int prevLength)
-{
-    int sum{0};
+int evalInequality(vector<string> extendSet, size_t currLength, size_t prevLength) {
+    size_t sum{0};
     for (size_t i = 1; i <= (currLength - prevLength); i++)
     {
-        sum = sum + 4 ^ i;
+        sum = sum + (4^i);
     }
 
     return extendSet.size() * sum;
 }
 
-void extendPrefixes(vector<string> &extendSet, char (&letterSet)[4])
-{
-    int index{0};
+void extendPrefixes(vector<string>& extendSet, char (&letterSet)[4]) {
+    size_t index{0};
 
     vector<string> vectorForExtension(extendSet);
     extendSet.resize(extendSet.size() * 4);
@@ -92,33 +92,71 @@ string readFile(string fileName)
     return dna;
 }
 
-int main()
-{
-    string sequence = readFile("hello.txt");
-    int t{50};
+int readAndCompare(ifstream& openFile, string target) {
+    string line;
+    string remainingFragment{""};
+    int counter {};
+    while (getline(openFile, line)) {
+        string compareString = remainingFragment + line;
+        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
+        size_t len = compareString.length();
+        size_t searchLen = target.length();
+        size_t comparableLen = len - searchLen;
+        for (size_t i = 0; i < comparableLen; i++) {
+            int result = compareString.compare(i, searchLen, target);
+            if (result == 0) {
+                counter++;
+            }
+        }
+        remainingFragment = compareString.substr(comparableLen);
+    }
+    return counter;
+}
 
-    char alphabet[4]{'a', 'g', 'c', 't'};
+int readAndCompareAll(ifstream& openFile, vector<string>& targets, array<int, 5000>& counts) {
+    string line;
+    string remainingFragment{""};
+    // printVector(targets);
+    getline(openFile, line);
+    while (getline(openFile, line)) {
+        string compareString = remainingFragment + line;
+        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
+
+        size_t len = compareString.length();
+        size_t searchLen = targets[0].length();
+        size_t comparableLen = len - searchLen;
+
+        for (size_t i = 0; i < comparableLen; i++) {
+            size_t index{0};
+            for (string target: targets) {
+                int result = compareString.compare(i, searchLen, target);
+                if (result == 0) {
+                    counts[index] += 1;
+                }
+                index += 1;
+            }
+            
+        }
+
+        remainingFragment = compareString.substr(comparableLen);
+    }
+    return 1;
+}
+
+void runMultiPass(ifstream& sequenceFile, int t) {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+
+    auto t1 = high_resolution_clock::now();
+    
+    char alphabet[4] {'A', 'G', 'C', 'T'};
     vector<string> extendVector{""};
     vector<string> prefixVector;
 
-    int length{0};
-    int prevLength{0};
-
-    // extendPrefixes(extendVector, alphabet);
-    // int index{0};
-    // for (string prefix: extendVector) {
-    //     int freq = countSubstring(sequence, prefix);
-    //     if (freq <= t) {
-    //         prefixVector.push_back(prefix);
-    //         extendVector[index] = "";
-    //     }
-    //     index += 1;
-    // }
-    // std::cout << extendVector.size() << "\n";
-    // clearEmpties(extendVector);
-    // std::cout << extendVector.size() << "\n";
-    // printVector(extendVector);
-    // printVector(prefixVector);
+    size_t length{0};
+    size_t prevLength{0};
 
     while (true)
     {
@@ -126,13 +164,13 @@ int main()
         {
             length += 1;
             extendPrefixes(extendVector, alphabet);
-            int index{0};
-            for (string prefix : extendVector)
-            {
-                int freq = countSubstring(sequence, prefix);
-                std::cout << prefix + " " << freq << "\n";
-                if (freq <= t)
-                {
+            size_t index{0};
+            for (string prefix: extendVector) {
+                int freq = readAndCompare(sequenceFile, prefix);
+                sequenceFile.clear();                 
+                sequenceFile.seekg(0, std::ios::beg);
+                // std::cout << prefix + " " << freq << "\n";
+                if (freq <= t) {
                     prefixVector.push_back(prefix);
                     extendVector[index] = "";
                 }
@@ -152,7 +190,95 @@ int main()
         }
     }
 
-    std::ofstream output_file("./prefixes.txt");
+    std::ofstream output_file("./MultiPassPrefixes.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
     std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << ms_int.count() << "ms\n";
+    std::cout << ms_double.count() << "ms\n";
+}
+
+void runSinglePass(ifstream& sequenceFile, int t) {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+
+    auto t1 = high_resolution_clock::now();  
+
+    char alphabet[4] {'A', 'G', 'C', 'T'};
+    vector<string> extendVector{""};
+    vector<string> prefixVector;
+    // vector<int> freqs = vector<int>(16^4);
+    array<int, 5000> freqs{0};
+    // freqs.reserve(65536);
+
+    size_t length{0};
+    size_t prevLength{0};
+    
+    while (true) {
+        while (evalInequality(extendVector, length, prevLength) <= t) {
+            length += 1;
+            extendPrefixes(extendVector, alphabet);
+
+            size_t index{0};
+            readAndCompareAll(sequenceFile, extendVector, freqs);
+            sequenceFile.clear();                 
+            sequenceFile.seekg(0, std::ios::beg); 
+
+            for (string prefix: extendVector) {
+                // std::cout << prefix + " " << freqs[index] << "\n";
+
+                if (freqs[index] <= t) {
+                    prefixVector.push_back(prefix);
+                    extendVector[index] = "";
+                }
+                freqs[index] = 0;
+                index += 1;
+            }
+
+            clearEmpties(extendVector);
+            if (extendVector.size() == 0) {
+                break;
+            }
+        }
+        prevLength = length;
+        if (extendVector.size() == 0) {
+                break;
+            }
+    }
+
+    std::ofstream output_file("./SinglePassPrefixes.txt");
+    std::ostream_iterator<std::string> output_iterator(output_file, "\n");
+    std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << ms_int.count() << "ms\n";
+    std::cout << ms_double.count() << "ms\n";
+}
+
+int main() {
+    ifstream sequenceFile;
+    // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
+    // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
+    // sequenceFile.open("hello.txt");
+    sequenceFile.open("GCA_900091925.1_3P1_genomic.fna");
+    int t{50};
+    runSinglePass(sequenceFile, t);
+    runMultiPass(sequenceFile, t);
 }
