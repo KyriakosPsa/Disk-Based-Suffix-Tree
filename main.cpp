@@ -1,7 +1,8 @@
-#include <regex>
 #include <iostream>
+#include <fstream>
+#include <regex>
 #include <string>
-#include <vector>
+#include <sstream>
 #include <cmath>
 #include "header.h"
 
@@ -11,13 +12,19 @@ int main()
 {
   // ask for the filename
   string file_input_text;
-  string input_sequence;
   long long int input_sequence_len = 0;
-  cout << "Please pass the name of the file containing the DNA sequence\n";
+  cout << "Please pass the name of the file containing the DNA sequence:\n";
   cin >> file_input_text;
-  // Read the file and
-  input_sequence = readFile(file_input_text);
-  input_sequence_len = input_sequence.length();
+  // Read the file and find the lenght of the sequence
+  try
+  {
+    input_sequence_len = preprocess_sequence(file_input_text);
+  }
+  catch (const exception &e)
+  {
+    cerr << e.what() << '\n';
+    exit(1); // Stop execution
+  }
   cout << "Sequence length is: " << input_sequence_len << "\n";
 
   // Initialize variables for the calculation of t
@@ -32,7 +39,7 @@ int main()
   if (answer == 'y')
   {
     limit_memory_bool = true;
-    cout << "Enter the RAM memory you wish to use:\n";
+    cout << "Enter the RAM memory you wish to use (in GBs):\n";
     cin >> limited_memory_GB;
     limited_ram_bytes = limited_memory_GB * pow(10, 9);
   }
@@ -45,7 +52,7 @@ int main()
   long long int available_total_RAM = get_total_ram_bytes();
 
   // Calculate t, throw error if limit_memory > available RAM
-  if (limited_ram_bytes < available_total_RAM)
+  try
   {
     long long int t = calculate_t(input_sequence_len,
                                   available_total_RAM,
@@ -54,8 +61,9 @@ int main()
     cout << "The value of t is:\n"
          << t;
   }
-  else
+  catch (const exception &e)
   {
-    cerr << "ERROR: Limited memory cannot be higher than available system RAM";
+    cerr << e.what() << '\n';
+    exit(1); // Stop execution
   }
 }
