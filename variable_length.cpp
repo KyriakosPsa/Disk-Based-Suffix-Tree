@@ -227,7 +227,7 @@ void runMultiPass(ifstream& sequenceFile, int t) {
         }
     }
 
-    std::ofstream output_file("./MultiPassPrefixesStream.txt");
+    std::ofstream output_file("./output/MultiPassPrefixesStream.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
     std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
 
@@ -288,7 +288,7 @@ void runMultiPass(vector<string>& sequenceVector, int t) {
         }
     }
 
-    std::ofstream output_file("./MultiPassPrefixesVector.txt");
+    std::ofstream output_file("./output/MultiPassPrefixesVector.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
     std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
 
@@ -354,7 +354,7 @@ void runSinglePass(ifstream& sequenceFile, int t) {
             }
     }
 
-    std::ofstream output_file("./SinglePassPrefixesStream.txt");
+    std::ofstream output_file("./output/SinglePassPrefixesStream.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
     std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
 
@@ -418,7 +418,7 @@ void runSinglePass(vector<string>& sequenceVector, int t) {
             }
     }
 
-    std::ofstream output_file("./SinglePassPrefixesVector.txt");
+    std::ofstream output_file("./output/SinglePassPrefixesVector.txt");
     std::ostream_iterator<std::string> output_iterator(output_file, "\n");
     std::copy(std::begin(prefixVector), std::end(prefixVector), output_iterator);
 
@@ -459,6 +459,8 @@ void readIntoVector(vector<string>& vec, ifstream& openFile, int stringLength) {
 
     // to catch final line:
     vec.emplace_back(grow);
+    openFile.clear();
+    openFile.seekg(0, std::ios::beg);
 }
 
 unsigned int getFileSize(string fileName) {
@@ -475,10 +477,10 @@ int main() {
     // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
-    sequenceFile.open("sequence.fasta");
-    cout << getFileSize("sequence.fasta") << "\n";
+    sequenceFile.open("NC_045512v2.fa");
+    cout << getFileSize("NC_045512v2.fa") << "\n";
     // unsigned int concatenatedLines = 100;
-    unsigned int reserveSize = getFileSize("sequence.fasta") / 60 / 100;
+    unsigned int reserveSize = getFileSize("NC_045512v2.fa") / 60 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
