@@ -5,6 +5,7 @@
 #define MY_HEADER_H
 
 // Function declaration(s)
+using namespace std;
 
 // Memory managment utilites
 long long int get_total_ram_bytes();
@@ -15,6 +16,6 @@ long long int calculate_t(long long int &sequence_size,
                           bool limit = false);
 
 // File handling utilities
-long long int seq_length_from_file(string &filename);
+long long int preprocess_sequence(string filename);
 
 #endif

@@ -49,9 +49,13 @@ long long int calculate_t(long long int &sequence_size,
     long long int t = (total_ram - sequence_size / 4) / 72;
     return t;
   }
-  else
+  else if (limit_memory_bytes < total_ram)
   {
     long long int t = (limit_memory_bytes - (sequence_size / 4)) / 72;
     return t;
+  }
+  else
+  {
+    throw invalid_argument("ERROR: Limited memory cannot be set above the system's available RAM");
   }
 }
