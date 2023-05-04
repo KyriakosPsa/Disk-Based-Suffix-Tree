@@ -9,6 +9,10 @@
 #include <regex>
 #include <chrono>
 using namespace std;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+using std::chrono::high_resolution_clock;
+using std::chrono::milliseconds;
 
 int evalInequality(vector<string> extendSet, size_t currLength, size_t prevLength)
 {
@@ -81,6 +85,7 @@ int readAndCompare(ifstream &openFile, string target)
     string line;
     string remainingFragment{""};
     int counter{};
+    getline(openFile, line);
     while (getline(openFile, line))
     {
         string compareString = remainingFragment + line;
@@ -191,11 +196,6 @@ void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, 
 
 void runMultiPass(ifstream &sequenceFile, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -257,11 +257,6 @@ void runMultiPass(ifstream &sequenceFile, int t)
 
 void runMultiPass(vector<string> &sequenceVector, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -321,11 +316,6 @@ void runMultiPass(vector<string> &sequenceVector, int t)
 
 void runSinglePass(ifstream &sequenceFile, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -394,11 +384,6 @@ void runSinglePass(ifstream &sequenceFile, int t)
 
 void runSinglePass(vector<string> &sequenceVector, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -472,6 +457,7 @@ void writeToFile(vector<string> &vec, string fileName)
 
 void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
 {
+    auto t1 = high_resolution_clock::now();
     string line;
     string grow{""};
     int growCount{0};
@@ -494,6 +480,18 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
     vec.emplace_back(grow);
     openFile.clear();
     openFile.seekg(0, std::ios::beg);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << ms_int.count() << "ms\n";
+    std::cout << ms_double.count() << "ms\n";
+
 }
 
 unsigned int getFileSize(string fileName)
@@ -522,7 +520,7 @@ int main()
     readIntoVector(sequenceVector, sequenceFile, 99);
     writeToFile(sequenceVector, "test.txt");
 
-    int t{50};
+    int t{10};
     runSinglePass(sequenceFile, t);
     runMultiPass(sequenceFile, t);
     runSinglePass(sequenceVector, t);
