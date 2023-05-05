@@ -3,11 +3,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include <array>
 #include <iterator>
 #include <vector>
 #include <regex>
 #include <chrono>
+
 using namespace std;
 
 int evalInequality(vector<string> extendSet, size_t currLength, size_t prevLength)
@@ -251,8 +253,7 @@ void runMultiPass(ifstream &sequenceFile, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runMultiPass-sequenceFile: " << ms_double.count() << "ms\n";
 }
 
 void runMultiPass(vector<string> &sequenceVector, int t)
@@ -315,8 +316,7 @@ void runMultiPass(vector<string> &sequenceVector, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runMultiPass-sequenceVector: " << ms_double.count() << "ms\n";
 }
 
 void runSinglePass(ifstream &sequenceFile, int t)
@@ -388,8 +388,7 @@ void runSinglePass(ifstream &sequenceFile, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runSinglePass-sequenceFile: " << ms_double.count() << "ms\n";
 }
 
 void runSinglePass(vector<string> &sequenceVector, int t)
@@ -459,8 +458,7 @@ void runSinglePass(vector<string> &sequenceVector, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runSinglePass-sequenceVector: " << ms_double.count() << "ms\n";
 }
 
 void writeToFile(vector<string> &vec, string fileName)
@@ -512,19 +510,21 @@ int main()
     // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
-    sequenceFile.open("NC_045512v2.fa");
-    cout << getFileSize("NC_045512v2.fa") << "\n";
+    sequenceFile.open("Drosophila.fa");
+    unsigned int file_size = getFileSize("Drosophila.fa");
     // unsigned int concatenatedLines = 100;
-    unsigned int reserveSize = getFileSize("NC_045512v2.fa") / 60 / 100;
+    unsigned int reserveSize = file_size / 60 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
     readIntoVector(sequenceVector, sequenceFile, 99);
     writeToFile(sequenceVector, "test.txt");
 
-    int t{50};
+    unsigned int t = round(file_size / 3000);
+    cout << "File size: " << file_size << "\n";
+    cout << "threshold t: " << t << "\n";
     runSinglePass(sequenceFile, t);
-    runMultiPass(sequenceFile, t);
     runSinglePass(sequenceVector, t);
+    runMultiPass(sequenceFile, t);
     runMultiPass(sequenceVector, t);
 }
