@@ -9,8 +9,13 @@
 #include <vector>
 #include <regex>
 #include <chrono>
+#include <cmath>
 
 using namespace std;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+using std::chrono::high_resolution_clock;
+using std::chrono::milliseconds;
 
 int evalInequality(vector<string> extendSet, size_t currLength, size_t prevLength)
 {
@@ -40,31 +45,6 @@ void extendPrefixes(vector<string> &extendSet, char (&letterSet)[4])
     }
 }
 
-void printVector(vector<string> &vector)
-{
-    for (string i : vector)
-    {
-        std::cout << i << ' ';
-    }
-    std::cout << "\n";
-}
-
-int countSubstring(string &text, string target)
-{
-    size_t n = text.length();
-    size_t target_n = target.length();
-    int counter{};
-    for (size_t i = 0; i < n; i++)
-    {
-        int result = text.compare(i, target_n, target);
-        if (result == 0)
-        {
-            counter++;
-        }
-    }
-    return counter;
-}
-
 void clearEmpties(vector<string> &extendSet)
 {
     vector<string> newExtendSet;
@@ -78,27 +58,40 @@ void clearEmpties(vector<string> &extendSet)
     extendSet = newExtendSet;
 }
 
+void printVector(vector<string> &vector)
+{
+    for (string i : vector)
+    {
+        std::cout << i << ' ';
+    }
+    std::cout << "\n";
+}
+
 int readAndCompare(ifstream &openFile, string target)
 {
     string line;
     string remainingFragment{""};
     int counter{};
+    getline(openFile, line);
     while (getline(openFile, line))
     {
-        string compareString = remainingFragment + line;
-        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
-        size_t len = compareString.length();
-        size_t searchLen = target.length();
-        size_t comparableLen = len - searchLen;
-        for (size_t i = 0; i < comparableLen; i++)
+        if (!(line.starts_with('>')))
         {
-            int result = compareString.compare(i, searchLen, target);
-            if (result == 0)
+            string compareString = remainingFragment + line;
+            transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
+            size_t len = compareString.length();
+            size_t searchLen = target.length();
+            size_t comparableLen = len - searchLen;
+            for (size_t i = 0; i < comparableLen; i++)
             {
-                counter++;
+                int result = compareString.compare(i, searchLen, target);
+                if (result == 0)
+                {
+                    counter++;
+                }
             }
+            remainingFragment = compareString.substr(comparableLen);
         }
-        remainingFragment = compareString.substr(comparableLen);
     }
     return counter;
 }
@@ -128,7 +121,7 @@ int readAndCompare(vector<string> &sequenceVector, string target)
     return counter;
 }
 
-void readAndCompareAll(ifstream &openFile, vector<string> &targets, array<int, 5000> &counts)
+void readAndCompareAll(ifstream &openFile, vector<string> &targets, vector<int> &counts)
 {
     string line;
     string remainingFragment{""};
@@ -136,32 +129,35 @@ void readAndCompareAll(ifstream &openFile, vector<string> &targets, array<int, 5
     getline(openFile, line);
     while (getline(openFile, line))
     {
-        string compareString = remainingFragment + line;
-        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
-
-        size_t len = compareString.length();
-        size_t searchLen = targets[0].length();
-        size_t comparableLen = len - searchLen;
-
-        for (size_t i = 0; i < comparableLen; i++)
+        if (!(line.starts_with('>')))
         {
-            size_t index{0};
-            for (string target : targets)
-            {
-                int result = compareString.compare(i, searchLen, target);
-                if (result == 0)
-                {
-                    counts[index] += 1;
-                }
-                index += 1;
-            }
-        }
+            string compareString = remainingFragment + line;
+            transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
 
-        remainingFragment = compareString.substr(comparableLen);
+            size_t len = compareString.length();
+            size_t searchLen = targets[0].length();
+            size_t comparableLen = len - searchLen;
+
+            for (size_t i = 0; i < comparableLen; i++)
+            {
+                size_t index{0};
+                for (string target : targets)
+                {
+                    int result = compareString.compare(i, searchLen, target);
+                    if (result == 0)
+                    {
+                        counts[index] += 1;
+                    }
+                    index += 1;
+                }
+            }
+
+            remainingFragment = compareString.substr(comparableLen);
+        }
     }
 }
 
-void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, array<int, 5000> &counts)
+void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, vector<int> &counts)
 {
     string line;
     string remainingFragment{""};
@@ -193,11 +189,6 @@ void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, 
 
 void runMultiPass(ifstream &sequenceFile, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -258,11 +249,6 @@ void runMultiPass(ifstream &sequenceFile, int t)
 
 void runMultiPass(vector<string> &sequenceVector, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
@@ -321,18 +307,15 @@ void runMultiPass(vector<string> &sequenceVector, int t)
 
 void runSinglePass(ifstream &sequenceFile, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
     vector<string> extendVector{""};
     vector<string> prefixVector;
     // vector<int> freqs = vector<int>(16^4);
-    array<int, 5000> freqs{0};
+    // array<int, 5000> freqs{0};
+    vector<int> freqs(5000, 0);
+    // freqs.reserve(5000);
     // freqs.reserve(65536);
 
     size_t length{0};
@@ -393,19 +376,15 @@ void runSinglePass(ifstream &sequenceFile, int t)
 
 void runSinglePass(vector<string> &sequenceVector, int t)
 {
-    using std::chrono::duration;
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::milliseconds;
-
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
     vector<string> extendVector{""};
     vector<string> prefixVector;
     // vector<int> freqs = vector<int>(16^4);
-    array<int, 5000> freqs{0};
-    // freqs.reserve(65536);
+    // array<int, 5000> freqs{0};
+    vector<int> freqs(5000, 0);
+    // freqs.reserve(5000);
 
     size_t length{0};
     size_t prevLength{0};
@@ -470,6 +449,7 @@ void writeToFile(vector<string> &vec, string fileName)
 
 void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
 {
+    auto t1 = high_resolution_clock::now();
     string line;
     string grow{""};
     int growCount{0};
@@ -497,6 +477,17 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
     vec.emplace_back(grow);
     openFile.clear();
     openFile.seekg(0, std::ios::beg);
+
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as an integer. */
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout << ms_int.count() << "ms\n";
+    std::cout << ms_double.count() << "ms\n";
 }
 
 unsigned int getFileSize(string fileName)
@@ -516,20 +507,19 @@ int main()
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
     sequenceFile.open("genome.fna");
-    unsigned int file_size = getFileSize("genome.fna");
+    unsigned int fileSize = getFileSize("genome.fna");
     // unsigned int concatenatedLines = 100;
-    unsigned int reserveSize = file_size / 80 / 100;
+    unsigned int reserveSize = fileSize / 80 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
     readIntoVector(sequenceVector, sequenceFile, 99);
     // writeToFile(sequenceVector, "test.txt");
 
-    // unsigned int t = round(file_size / 3000);
-    // cout << "File size: " << file_size << "\n";
-    // cout << "threshold t: " << t << "\n";
-    // runSinglePass(sequenceFile, t);
-    // runSinglePass(sequenceVector, t);
-    // runMultiPass(sequenceFile, t);
-    // runMultiPass(sequenceVector, t);
+    int t = round(fileSize / 3000);
+    cout << "threshold t: " << t << "\n";
+    runSinglePass(sequenceFile, t);
+    runSinglePass(sequenceVector, t);
+    runMultiPass(sequenceFile, t);
+    runMultiPass(sequenceVector, t);
 }
