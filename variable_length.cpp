@@ -474,7 +474,7 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
     string grow{""};
     int growCount{0};
     getline(openFile, line);
-
+    long int progrescounter = 0;
     while (getline(openFile, line))
     {
         if (growCount == stringLength)
@@ -486,6 +486,11 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
         }
         grow = grow + line;
         growCount++;
+        progrescounter++;
+        if ((progrescounter % 40000) == 0)
+        {
+            cout << progrescounter << "\n";
+        }
     }
 
     // to catch final line:
@@ -510,21 +515,21 @@ int main()
     // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
-    sequenceFile.open("Drosophila.fa");
-    unsigned int file_size = getFileSize("Drosophila.fa");
+    sequenceFile.open("genome.fna");
+    unsigned int file_size = getFileSize("genome.fna");
     // unsigned int concatenatedLines = 100;
-    unsigned int reserveSize = file_size / 60 / 100;
+    unsigned int reserveSize = file_size / 80 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
     readIntoVector(sequenceVector, sequenceFile, 99);
-    writeToFile(sequenceVector, "test.txt");
+    // writeToFile(sequenceVector, "test.txt");
 
-    unsigned int t = round(file_size / 3000);
-    cout << "File size: " << file_size << "\n";
-    cout << "threshold t: " << t << "\n";
-    runSinglePass(sequenceFile, t);
-    runSinglePass(sequenceVector, t);
-    runMultiPass(sequenceFile, t);
-    runMultiPass(sequenceVector, t);
+    // unsigned int t = round(file_size / 3000);
+    // cout << "File size: " << file_size << "\n";
+    // cout << "threshold t: " << t << "\n";
+    // runSinglePass(sequenceFile, t);
+    // runSinglePass(sequenceVector, t);
+    // runMultiPass(sequenceFile, t);
+    // runMultiPass(sequenceVector, t);
 }
