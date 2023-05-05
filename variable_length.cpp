@@ -8,6 +8,7 @@
 #include <vector>
 #include <regex>
 #include <chrono>
+#include <cmath>
 using namespace std;
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -42,31 +43,6 @@ void extendPrefixes(vector<string> &extendSet, char (&letterSet)[4])
     }
 }
 
-void printVector(vector<string> &vector)
-{
-    for (string i : vector)
-    {
-        std::cout << i << ' ';
-    }
-    std::cout << "\n";
-}
-
-int countSubstring(string &text, string target)
-{
-    size_t n = text.length();
-    size_t target_n = target.length();
-    int counter{};
-    for (size_t i = 0; i < n; i++)
-    {
-        int result = text.compare(i, target_n, target);
-        if (result == 0)
-        {
-            counter++;
-        }
-    }
-    return counter;
-}
-
 void clearEmpties(vector<string> &extendSet)
 {
     vector<string> newExtendSet;
@@ -80,6 +56,15 @@ void clearEmpties(vector<string> &extendSet)
     extendSet = newExtendSet;
 }
 
+void printVector(vector<string> &vector)
+{
+    for (string i : vector)
+    {
+        std::cout << i << ' ';
+    }
+    std::cout << "\n";
+}
+
 int readAndCompare(ifstream &openFile, string target)
 {
     string line;
@@ -88,20 +73,22 @@ int readAndCompare(ifstream &openFile, string target)
     getline(openFile, line);
     while (getline(openFile, line))
     {
-        string compareString = remainingFragment + line;
-        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
-        size_t len = compareString.length();
-        size_t searchLen = target.length();
-        size_t comparableLen = len - searchLen;
-        for (size_t i = 0; i < comparableLen; i++)
-        {
-            int result = compareString.compare(i, searchLen, target);
-            if (result == 0)
+        if (!(line.starts_with('>'))) {
+            string compareString = remainingFragment + line;
+            transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
+            size_t len = compareString.length();
+            size_t searchLen = target.length();
+            size_t comparableLen = len - searchLen;
+            for (size_t i = 0; i < comparableLen; i++)
             {
-                counter++;
+                int result = compareString.compare(i, searchLen, target);
+                if (result == 0)
+                {
+                    counter++;
+                }
             }
+            remainingFragment = compareString.substr(comparableLen);
         }
-        remainingFragment = compareString.substr(comparableLen);
     }
     return counter;
 }
@@ -131,7 +118,7 @@ int readAndCompare(vector<string> &sequenceVector, string target)
     return counter;
 }
 
-void readAndCompareAll(ifstream &openFile, vector<string> &targets, array<int, 5000> &counts)
+void readAndCompareAll(ifstream &openFile, vector<string> &targets, vector<int> &counts)
 {
     string line;
     string remainingFragment{""};
@@ -139,32 +126,35 @@ void readAndCompareAll(ifstream &openFile, vector<string> &targets, array<int, 5
     getline(openFile, line);
     while (getline(openFile, line))
     {
-        string compareString = remainingFragment + line;
-        transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
+        if (!(line.starts_with('>'))) {
+            string compareString = remainingFragment + line;
+            transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
 
-        size_t len = compareString.length();
-        size_t searchLen = targets[0].length();
-        size_t comparableLen = len - searchLen;
+            size_t len = compareString.length();
+            size_t searchLen = targets[0].length();
+            size_t comparableLen = len - searchLen;
 
-        for (size_t i = 0; i < comparableLen; i++)
-        {
-            size_t index{0};
-            for (string target : targets)
+            for (size_t i = 0; i < comparableLen; i++)
             {
-                int result = compareString.compare(i, searchLen, target);
-                if (result == 0)
+                size_t index{0};
+                for (string target : targets)
                 {
-                    counts[index] += 1;
+                    int result = compareString.compare(i, searchLen, target);
+                    if (result == 0)
+                    {
+                        counts[index] += 1;
+                    }
+                    index += 1;
                 }
-                index += 1;
             }
-        }
 
-        remainingFragment = compareString.substr(comparableLen);
+            remainingFragment = compareString.substr(comparableLen);
+        }
+        
     }
 }
 
-void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, array<int, 5000> &counts)
+void readAndCompareAll(vector<string> &sequenceVector, vector<string> &targets, vector<int> &counts)
 {
     string line;
     string remainingFragment{""};
@@ -322,7 +312,9 @@ void runSinglePass(ifstream &sequenceFile, int t)
     vector<string> extendVector{""};
     vector<string> prefixVector;
     // vector<int> freqs = vector<int>(16^4);
-    array<int, 5000> freqs{0};
+    // array<int, 5000> freqs{0};
+    vector<int> freqs(5000, 0);
+    // freqs.reserve(5000);
     // freqs.reserve(65536);
 
     size_t length{0};
@@ -390,8 +382,9 @@ void runSinglePass(vector<string> &sequenceVector, int t)
     vector<string> extendVector{""};
     vector<string> prefixVector;
     // vector<int> freqs = vector<int>(16^4);
-    array<int, 5000> freqs{0};
-    // freqs.reserve(65536);
+    // array<int, 5000> freqs{0};
+    vector<int> freqs(5000, 0);
+    // freqs.reserve(5000);
 
     size_t length{0};
     size_t prevLength{0};
@@ -465,15 +458,17 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
 
     while (getline(openFile, line))
     {
-        if (growCount == stringLength)
-        {
-            transform(grow.begin(), grow.end(), grow.begin(), ::toupper);
-            vec.emplace_back(grow);
-            grow = "";
-            growCount = 0;
+        if (!(line.starts_with('>'))) {
+            if (growCount == stringLength)
+            {
+                transform(grow.begin(), grow.end(), grow.begin(), ::toupper);
+                vec.emplace_back(grow);
+                grow = "";
+                growCount = 0;
+            }
+            grow = grow + line;
+            growCount++;
         }
-        grow = grow + line;
-        growCount++;
     }
 
     // to catch final line:
@@ -510,19 +505,20 @@ int main()
     // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
-    sequenceFile.open("NC_045512v2.fa");
-    cout << getFileSize("NC_045512v2.fa") << "\n";
+    sequenceFile.open("GCF_002966405.1_ASM296640v1_genomic.fna");
+    unsigned int fileSize = getFileSize("GCF_002966405.1_ASM296640v1_genomic.fna");
     // unsigned int concatenatedLines = 100;
-    unsigned int reserveSize = getFileSize("NC_045512v2.fa") / 60 / 100;
+    unsigned int reserveSize = fileSize / 80 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
     readIntoVector(sequenceVector, sequenceFile, 99);
     writeToFile(sequenceVector, "test.txt");
 
-    int t{10};
+    int t = round(fileSize / 3000);
+    cout << "threshold t: " << t << "\n";
     runSinglePass(sequenceFile, t);
-    runMultiPass(sequenceFile, t);
     runSinglePass(sequenceVector, t);
+    runMultiPass(sequenceFile, t);
     runMultiPass(sequenceVector, t);
 }
