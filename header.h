@@ -15,7 +15,6 @@ long long int calculate_t(long long int &sequence_size,
                           long long int limit_memory_bytes,
                           bool limit = false);
 
-// File handling utilities
-long long int preprocess_sequence(string filename);
-
+// File handling utilites
+string readFile(string &fileName);
 #endif
