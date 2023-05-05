@@ -3,12 +3,14 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include <array>
 #include <iterator>
 #include <vector>
 #include <regex>
 #include <chrono>
 #include <cmath>
+
 using namespace std;
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -241,8 +243,7 @@ void runMultiPass(ifstream &sequenceFile, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runMultiPass-sequenceFile: " << ms_double.count() << "ms\n";
 }
 
 void runMultiPass(vector<string> &sequenceVector, int t)
@@ -300,8 +301,7 @@ void runMultiPass(vector<string> &sequenceVector, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runMultiPass-sequenceVector: " << ms_double.count() << "ms\n";
 }
 
 void runSinglePass(ifstream &sequenceFile, int t)
@@ -370,8 +370,7 @@ void runSinglePass(ifstream &sequenceFile, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runSinglePass-sequenceFile: " << ms_double.count() << "ms\n";
 }
 
 void runSinglePass(vector<string> &sequenceVector, int t)
@@ -437,8 +436,7 @@ void runSinglePass(vector<string> &sequenceVector, int t)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "runSinglePass-sequenceVector: " << ms_double.count() << "ms\n";
 }
 
 void writeToFile(vector<string> &vec, string fileName)
