@@ -30,32 +30,34 @@ int evalInequality(vector<string> extendSet, size_t currLength, size_t prevLengt
 
 void extendPrefixes(vector<string> &extendSet, char (&letterSet)[4])
 {
-    size_t index{0};
+    size_t prefixes{extendSet.size()};
 
-    vector<string> vectorForExtension(extendSet);
-    extendSet.resize(extendSet.size() * 4);
-
-    for (string prefix : vectorForExtension)
+    for (long long unsigned int i = 0; i < prefixes; i++)
     {
-        for (char letter : letterSet)
-        {
-            extendSet[index] = prefix + letter;
-            index += 1;
-        }
+        // modify current prefix in place for the first letter.
+        // put the rest at the end of extendVector;
+        extendSet.push_back(extendSet[i] + letterSet[1]);
+        extendSet.push_back(extendSet[i] + letterSet[2]);
+        extendSet.push_back(extendSet[i] + letterSet[3]);
+        extendSet[i] = extendSet[i] + letterSet[0];
     }
 }
 
 void clearEmpties(vector<string> &extendSet)
 {
-    vector<string> newExtendSet;
-    for (string prefix : extendSet)
-    {
-        if (!prefix.empty())
-        {
-            newExtendSet.push_back(prefix);
-        }
-    }
-    extendSet = newExtendSet;
+    auto isEmpty = [](const std::string &s) {
+        return (s.length() == 0);
+    };
+    extendSet.erase(std::remove_if(extendSet.begin(), extendSet.end(), isEmpty), extendSet.end());
+    // int prefixes{extendSet.size()};
+    // for (int i = 0; i < prefixes; i++)
+    // {
+    //     if (extendSet[i].empty())
+    //     {
+    //         newExtendSet.push_back(prefix);
+    //     }
+    // }
+    // extendSet = newExtendSet;
 }
 
 void printVector(vector<string> &vector)
@@ -192,6 +194,7 @@ void runMultiPass(ifstream &sequenceFile, int t)
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
     vector<string> extendVector{""};
+    extendVector.reserve(10000);
     vector<string> prefixVector;
 
     size_t length{0};
@@ -252,6 +255,7 @@ void runMultiPass(vector<string> &sequenceVector, int t)
 
     char alphabet[4]{'A', 'G', 'C', 'T'};
     vector<string> extendVector{""};
+    extendVector.reserve(10000);
     vector<string> prefixVector;
 
     size_t length{0};
@@ -263,6 +267,7 @@ void runMultiPass(vector<string> &sequenceVector, int t)
         {
             length += 1;
             extendPrefixes(extendVector, alphabet);
+            // printVector(extendVector);
             size_t index{0};
             for (string prefix : extendVector)
             {
@@ -470,6 +475,7 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
     }
 
     // to catch final line:
+    transform(grow.begin(), grow.end(), grow.begin(), ::toupper);
     vec.emplace_back(grow);
     openFile.clear();
     openFile.seekg(0, std::ios::beg);
@@ -510,13 +516,14 @@ int main()
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
-    readIntoVector(sequenceVector, sequenceFile, 99);
+    readIntoVector(sequenceVector, sequenceFile, 10);
+    printVector(sequenceVector);
     writeToFile(sequenceVector, "test.txt");
 
-    int t = round(fileSize / 3000);
+    int t = 10;// round(fileSize / 3000);
     cout << "threshold t: " << t << "\n";
-    runSinglePass(sequenceFile, t);
-    runSinglePass(sequenceVector, t);
-    runMultiPass(sequenceFile, t);
+    // runSinglePass(sequenceFile, t);
+    // runSinglePass(sequenceVector, t);
+    // runMultiPass(sequenceFile, t);
     runMultiPass(sequenceVector, t);
 }
