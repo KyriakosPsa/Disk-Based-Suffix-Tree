@@ -77,7 +77,8 @@ int readAndCompare(ifstream &openFile, string target)
     getline(openFile, line);
     while (getline(openFile, line))
     {
-        if (!(line.starts_with('>'))) {
+        if (!(line.starts_with('>')))
+        {
             string compareString = remainingFragment + line;
             transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
             size_t len = compareString.length();
@@ -130,7 +131,8 @@ void readAndCompareAll(ifstream &openFile, vector<string> &targets, vector<int> 
     getline(openFile, line);
     while (getline(openFile, line))
     {
-        if (!(line.starts_with('>'))) {
+        if (!(line.starts_with('>')))
+        {
             string compareString = remainingFragment + line;
             transform(compareString.begin(), compareString.end(), compareString.begin(), ::toupper);
 
@@ -154,7 +156,6 @@ void readAndCompareAll(ifstream &openFile, vector<string> &targets, vector<int> 
 
             remainingFragment = compareString.substr(comparableLen);
         }
-        
     }
 }
 
@@ -458,19 +459,22 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
     string grow{""};
     int growCount{0};
     getline(openFile, line);
-
+    long int progrescounter = 0;
     while (getline(openFile, line))
     {
-        if (!(line.starts_with('>'))) {
-            if (growCount == stringLength)
-            {
-                transform(grow.begin(), grow.end(), grow.begin(), ::toupper);
-                vec.emplace_back(grow);
-                grow = "";
-                growCount = 0;
-            }
-            grow = grow + line;
-            growCount++;
+        if (growCount == stringLength)
+        {
+            transform(grow.begin(), grow.end(), grow.begin(), ::toupper);
+            vec.emplace_back(grow);
+            grow = "";
+            growCount = 0;
+        }
+        grow = grow + line;
+        growCount++;
+        progrescounter++;
+        if ((progrescounter % 40000) == 0)
+        {
+            cout << progrescounter << "\n";
         }
     }
 
@@ -490,7 +494,6 @@ void readIntoVector(vector<string> &vec, ifstream &openFile, int stringLength)
 
     std::cout << ms_int.count() << "ms\n";
     std::cout << ms_double.count() << "ms\n";
-
 }
 
 unsigned int getFileSize(string fileName)
@@ -509,14 +512,14 @@ int main()
     // sequenceFile.open("./GCF_000001735.4_TAIR10.1_genomic.fna");
     // sequenceFile.open("GCF_000001405.40_GRCh38.p14_genomic.fna");
     // sequenceFile.open("hello.txt");
-    sequenceFile.open("GCF_002966405.1_ASM296640v1_genomic.fna");
-    unsigned int fileSize = getFileSize("GCF_002966405.1_ASM296640v1_genomic.fna");
+    sequenceFile.open("genome.fna");
+    unsigned int fileSize = getFileSize("genome.fna");
     // unsigned int concatenatedLines = 100;
     unsigned int reserveSize = fileSize / 80 / 100;
     vector<string> sequenceVector;
     sequenceVector.reserve(reserveSize);
 
-    readIntoVector(sequenceVector, sequenceFile, 10);
+    readIntoVector(sequenceVector, sequenceFile, 99);
     printVector(sequenceVector);
     writeToFile(sequenceVector, "test.txt");
 
