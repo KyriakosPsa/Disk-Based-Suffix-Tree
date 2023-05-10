@@ -58,7 +58,7 @@ void writeToFile(std::vector<std::string>& vec, std::string fileName)
     std::copy(vec.begin(), vec.end(), output_iterator);
 }
 
-int readAndCompare(string &sequence, std::string target, int t, size_t sequenceLength)
+int countSubstring(string &sequence, std::string target, int t, size_t sequenceLength)
 {
     int counter{ 0 };
     size_t searchLen = target.length();
@@ -96,7 +96,7 @@ void runMultiPass(string &sequence, int t, size_t sequenceLength)
             size_t index{ 0 };
             for (std::string prefix : extendVector)
             {
-                int freq = readAndCompare(sequence, prefix, t, sequenceLength);
+                int freq = countSubstring(sequence, prefix, t, sequenceLength);
                 if (freq < t)
                 {
                     prefixVector.push_back(prefix);
@@ -133,27 +133,23 @@ void runMultiPass(string &sequence, int t, size_t sequenceLength)
     std::cout << "MultiPass: " << ms_double.count() << "ms\n";
 }
 
-void readAndCompareAll(string &sequence, std::vector<std::string>& targets, std::vector<std::string>& goNext, std::vector<int>& counts, int t, size_t sequenceLength)
+void countAllSubstrings(string &sequence, std::vector<std::string>& targets, std::vector<int>& counts, int t, size_t sequenceLength)
 {    
     size_t searchLen = targets[0].length();
-        for (size_t i = 0; i < sequenceLength; i++) {
-            size_t index{ 0 };
-            for (std::string target : targets)
-            {
-                if (!target.empty()) {
-                    int result = sequence.compare(i, searchLen, target);
-                    if (result == 0)
-                    {
-                        counts[index] += 1;
-                        if (counts[index] >= t) {
-                            goNext.emplace_back(targets[index]);
-                            targets[index] = "";
-                            counts[index] = 0;
-                        }
-                    }
+    
+    for (size_t i = 0; i < sequenceLength; i++) {
+        size_t index{ 0 };
+        for (std::string target : targets)
+        {
+            if (counts[index] < t) {
+                int result = sequence.compare(i, searchLen, target);
+                if (result == 0)
+                {
+                    counts[index] += 1;
                 }
-                index += 1;
             }
+            index += 1;
+        }
     }
 }
 
@@ -162,8 +158,8 @@ void runSinglePass(string &sequence, int t, size_t sequenceLength)
     auto t1 = high_resolution_clock::now();
 
     char alphabet[4]{ 'A', 'G', 'C', 'T' };
-    std::vector<std::string> extendVector;
-    std::vector<std::string> goNextVector{ "" };
+    std::vector<std::string> extendVector{""};
+    extendVector.reserve(10000);
     std::vector<std::string> prefixVector;
     std::vector<int> freqs(10000, 0);
 
@@ -174,23 +170,31 @@ void runSinglePass(string &sequence, int t, size_t sequenceLength)
     {
         while (evalInequality(extendVector, length, prevlength) <= t)
         {
-            extendVector = goNextVector;
-            goNextVector.clear();
             length += 1;
             extendPrefixes(extendVector, alphabet);
 
-            readAndCompareAll(sequence, extendVector, goNextVector, freqs, t, sequenceLength);
+            countAllSubstrings(sequence, extendVector, freqs, t, sequenceLength);
+
+            size_t index{0};
+            for(string prefix: extendVector) {
+                if (freqs[index] < t)
+                {
+                    prefixVector.push_back(prefix);
+                    extendVector[index] = "";
+                }
+                index += 1;
+            }
 
             clearEmpties(extendVector);
             prefixVector.insert(std::end(prefixVector), std::begin(extendVector), std::end(extendVector));
             std::fill(freqs.begin(), freqs.end(), 0);
-            if (goNextVector.size() == 0)
+            if (extendVector.size() == 0)
             {
                 break;
             }
         }
         prevlength = length;
-        if (goNextVector.size() == 0)
+        if (extendVector.size() == 0)
         {
             break;
         }
@@ -244,7 +248,7 @@ unsigned int getFileSize(string fileName)
 int main()
 {
     ifstream sequenceFile;
-    string file{"NC_045512v2.fa"};
+    string file{"input\\NC_045512v2.fa"};
     sequenceFile.open(file);
 
     unsigned int fileSize = getFileSize(file);
