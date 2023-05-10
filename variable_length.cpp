@@ -136,7 +136,7 @@ void runMultiPass(string &sequence, int t, size_t sequenceLength)
 void countAllSubstrings(string &sequence, std::vector<std::string>& targets, std::vector<int>& counts, int t, size_t sequenceLength)
 {    
     size_t searchLen = targets[0].length();
-    
+    size_t done{0};
     for (size_t i = 0; i < sequenceLength; i++) {
         size_t index{ 0 };
         for (std::string target : targets)
@@ -147,9 +147,18 @@ void countAllSubstrings(string &sequence, std::vector<std::string>& targets, std
                 {
                     counts[index] += 1;
                 }
+                if (counts[index] == t) {
+                    done++;
+                }
+            }
+            if (done == targets.size()) {
+                break;
             }
             index += 1;
         }
+        if (done == targets.size()) {
+                break;
+            }
     }
 }
 
