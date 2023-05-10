@@ -1,3 +1,6 @@
 .vscode/
 input/
 output/
+*.out
+*.txt
+*.exe
