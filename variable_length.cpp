@@ -190,12 +190,12 @@ void runSinglePass(string &sequence, int t, size_t sequenceLength)
                 {
                     prefixVector.push_back(prefix);
                     extendVector[index] = "";
+                    freqs[index] = 0;
                 }
                 index += 1;
             }
 
             clearEmpties(extendVector);
-            prefixVector.insert(std::end(prefixVector), std::begin(extendVector), std::end(extendVector));
             std::fill(freqs.begin(), freqs.end(), 0);
             if (extendVector.size() == 0)
             {
@@ -267,8 +267,8 @@ int main()
     readIntoString(sequence, sequenceFile);
     size_t sequenceLength = sequence.length();
     std::cout << round(fileSize/3000) << '\n';
-    runSinglePass(sequence, round(fileSize/3000), sequenceLength);
-    runMultiPass(sequence, round(fileSize/3000), sequenceLength);
+    runSinglePass(sequence, 50, sequenceLength);
+    runMultiPass(sequence, 50, sequenceLength);
     sequenceFile.close();
     return 0;
 }
