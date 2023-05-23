@@ -11,6 +11,7 @@ struct Node
     string m_sub = ""; // a substring of the input string
     vector<std::string> m_children;  // vector of child nodes
     size_t m_startidx;
+    std::string m_parent;
     // int endidx;
     // Default constructor for Node.
     Node() : m_startidx{0}
@@ -18,7 +19,7 @@ struct Node
         //  The node is initialized  empty.
     }
     // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
-    Node(const string &sub, initializer_list<std::string> children, size_t startidx) : m_sub(sub), m_startidx(startidx)
+    Node(const string &sub, initializer_list<std::string> children, size_t startidx, std::string parent) : m_sub(sub), m_startidx(startidx), m_parent(parent)
     {
         // The child nodes of the node are inserted into the end of the children vector.
         m_children.insert(m_children.end(), children);
@@ -126,7 +127,7 @@ private:
                 if (x2 == children.size())
                 {
                     // no matching child, create a new child node
-                    Node newNode{suf.substr(i), {}, charpos};    // The remainder of the suffix from from current character position becomes the new child node
+                    Node newNode{suf.substr(i), {}, charpos, currentNodeKey};    // The remainder of the suffix from from current character position becomes the new child node
                     std::string newKey = getRandomId();
                     nodes.emplace(newKey, newNode);       // Add to nodes vector
                     nodes.at(currentNodeKey).m_children.push_back(newKey);
@@ -146,6 +147,7 @@ private:
             // find prefix of remaining suffix in common with child node
             auto sub2 = nodes.at(childOfInterestKey).m_sub; // The substring from the current character i to the end of the suffix
             size_t j = 0;
+            std::string newKey;
             // Iterate
             while (j < sub2.size())
             {
@@ -154,20 +156,34 @@ private:
                 {
                     // auto n3 = n2; // Assign a copy of the current child node
                     // n2 = nodes.size();
-                    Node newNode{sub2.substr(0, j), {childOfInterestKey}, charpos - j}; // The remainder of the suffix from from current character position becomes the new child node
-                    std::string newKey = getRandomId();
+                    Node newNode{sub2.substr(0, j), {childOfInterestKey}, charpos - j, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
+                    newKey = getRandomId();
                     nodes.emplace(newKey, newNode);
                     nodes.at(childOfInterestKey).m_sub = sub2.substr(j);
+                    nodes.at(childOfInterestKey).m_parent = newKey;
                     nodes.at(currentNodeKey).m_children[x2] = newKey;
                     break;                                                       // break and continue down the tree
                 }
                 j++;
             }
             i += j; // advance past part in common
-            currentNodeKey = childOfInterestKey; // continue down the tree
+            currentNodeKey = newKey; // continue down the tree
         }
     }
 };
+
+template <typename S>
+ostream& operator<<(ostream& os,
+                    const vector<S>& vector)
+{
+    // Printing all the elements
+    // using <<
+    for (auto element : vector) {
+        os << element << " ";
+    }
+    return os;
+}
+
 int main()
 {
     SuffixTree tree{"BANANA$"};
