@@ -23,10 +23,6 @@ struct Node
         // The child nodes of the node are inserted into the end of the children vector.
         m_children.insert(m_children.end(), children);
     }
-
-    void addChild(std::string &child) {
-        m_children.insert(m_children.end(), child);
-    }
 };
 
 std::string getRandomId() {
