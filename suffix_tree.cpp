@@ -7,16 +7,16 @@ using namespace std;
 struct Node
 {
     string sub = ""; // a substring of the input string
-    vector<int> ch;  // vector of child nodes
-    int startidx;
-    int endidx;
+    vector<size_t> ch;  // vector of child nodes
+    size_t startidx;
+    // int endidx;
     // Default constructor for Node.
     Node() : startidx{0}
     {
         //  The node is initialized  empty.
     }
     // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
-    Node(const string &sub, initializer_list<int> children, int startidx) : sub(sub), startidx(startidx)
+    Node(const string &sub, initializer_list<size_t> children, size_t startidx) : sub(sub), startidx(startidx)
     {
         // The child nodes of the node are inserted into the end of the children vector.
         ch.insert(ch.end(), children);
@@ -26,7 +26,7 @@ struct Node
 struct SuffixTree
 {
     vector<Node> nodes;
-    int charpos{0};
+    size_t charpos{0};
     // Constructor for SuffixTree that takes a string as input.
     SuffixTree(const string &str)
     {
@@ -48,8 +48,8 @@ struct SuffixTree
             return;
         }
 
-        function<void(int, const string &)> f;
-        f = [&](int n, const string &pre)
+        function<void(size_t, const string &)> f;
+        f = [&](size_t n, const string &pre)
         {
             auto children = nodes[n].ch;
             if (children.size() == 0)
@@ -96,14 +96,14 @@ private:
     addSuffix(const string &suf)
     /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
     {
-        int n = 0;    // Current Node
+        size_t n = 0;    // Current Node
         size_t i = 0; // Current character of the suffix string
         // Check if the position of the current character is inside the suffix lenght
         while (i < suf.length())
         {
             char b = suf[i]; // Current character in the suffix string
-            int x2 = 0;      // Index of the child node in the children list
-            int n2;          // The next node
+            size_t x2 = 0;      // Index of the child node in the children list
+            size_t n2;          // The next node
             /*This while loop check if any of  the children of the current node begin with the current character of the suffix,
             if none do so, it creates a new child node with the remained of the suffix from the current character position*/
             while (true)
