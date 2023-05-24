@@ -9,9 +9,9 @@ using namespace std;
 struct Node
 {
     string m_sub = ""; // a substring of the input string
-    vector<std::string> m_children;  // vector of child nodes
+    vector<int> m_children;  // vector of child nodes
     size_t m_startidx;
-    std::string m_parent;
+    int m_parent;
     // int endidx;
     // Default constructor for Node.
     Node() : m_startidx{0}
@@ -19,30 +19,30 @@ struct Node
         //  The node is initialized  empty.
     }
     // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
-    Node(const string &sub, initializer_list<std::string> children, size_t startidx, std::string parent) : m_sub(sub), m_startidx(startidx), m_parent(parent)
+    Node(const string &sub, initializer_list<int> children, size_t startidx, int parent) : m_sub(sub), m_startidx(startidx), m_parent(parent)
     {
         // The child nodes of the node are inserted into the end of the children vector.
         m_children.insert(m_children.end(), children);
     }
 };
 
-std::string getRandomId() {
+int getRandomId() {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist6(1,10000000); // distribution in range [1, 6]
 
-    return std::to_string(dist6(rng));
+    return dist6(rng);
 }
 
 struct SuffixTree
 {
-    std::unordered_map<std::string, Node> nodes;
+    std::unordered_map<int, Node> nodes;
     size_t charpos{0};
     // Constructor for SuffixTree that takes a string as input.
     SuffixTree(const string &str)
     {
         // Initialize the tree with an empty root node.
-        nodes.emplace("root", Node{});
+        nodes.emplace(0, Node{});
         // Iterate over each character in the input string.
         for (size_t i = 0; i < str.length(); i++)
         {
@@ -107,14 +107,14 @@ private:
     addSuffix(const string &suf)
     /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
     {
-        std::string currentNodeKey = "root";    // Current Node
+        int currentNodeKey = 0;    // Current Node
         size_t i = 0; // Current character of the suffix string
         // Check if the position of the current character is inside the suffix lenght
         while (i < suf.length())
         {
             char b = suf[i]; // Current character in the suffix string
             size_t x2 = 0;      // Index of the child node in the children list
-            std::string childOfInterestKey;                         // The next node
+            int childOfInterestKey;                         // The next node
             /*This while loop check if any of  the children of the current node begin with the current character of the suffix,
             if none do so, it creates a new child node with the remained of the suffix from the current character position*/
             while (true)
@@ -128,7 +128,7 @@ private:
                 {
                     // no matching child, create a new child node
                     Node newNode{suf.substr(i), {}, charpos, currentNodeKey};    // The remainder of the suffix from from current character position becomes the new child node
-                    std::string newKey = getRandomId();
+                    int newKey = getRandomId();
                     nodes.emplace(newKey, newNode);       // Add to nodes vector
                     nodes.at(currentNodeKey).m_children.push_back(newKey);
                     return;
@@ -147,7 +147,7 @@ private:
             // find prefix of remaining suffix in common with child node
             auto sub2 = nodes.at(childOfInterestKey).m_sub; // The substring from the current character i to the end of the suffix
             size_t j = 0;
-            std::string newKey;
+            int newKey;
             // Iterate
             while (j < sub2.size())
             {
@@ -171,18 +171,6 @@ private:
         }
     }
 };
-
-template <typename S>
-ostream& operator<<(ostream& os,
-                    const vector<S>& vector)
-{
-    // Printing all the elements
-    // using <<
-    for (auto element : vector) {
-        os << element << " ";
-    }
-    return os;
-}
 
 int main()
 {
