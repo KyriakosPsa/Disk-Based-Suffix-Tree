@@ -59,8 +59,8 @@ struct SuffixTree
             return;
         }
 
-        function<void(std::string, const string &)> f;
-        f = [&](std::string id, const string &pre)
+        function<void(int, const string &)> f;
+        f = [&](int id, const string &pre)
         {
             auto children = nodes.at(id).m_children;
             if (children.size() == 0)
@@ -85,7 +85,7 @@ struct SuffixTree
             f(children[children.size() - 1], pre + "  ");
         };
 
-        f("root", "");
+        f(0, "");
     }
 
     // void suffixIndex()
