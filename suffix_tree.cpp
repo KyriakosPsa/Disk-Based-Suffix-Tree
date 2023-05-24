@@ -31,7 +31,7 @@ int getRandomId() {
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> dist6(1,10000000); // distribution in range [1, 6]
 
-    return dist6(rng);
+    return static_cast<int>(dist6(rng));
 }
 
 struct SuffixTree
