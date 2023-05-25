@@ -3,13 +3,12 @@
 #include <vector>
 #include <random>
 
-
 using namespace std;
 
 struct Node
 {
-    string m_sub = ""; // a substring of the input string
-    vector<int> m_children;  // vector of child nodes
+    string m_sub = "";      // a substring of the input string
+    vector<int> m_children; // vector of child nodes
     size_t m_startidx;
     int m_parent;
     // int endidx;
@@ -26,16 +25,18 @@ struct Node
     }
 };
 
-int getRandomId() {
+int getRandomId()
+{
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(1,10000000); // distribution in range [1, 6]
+    std::uniform_int_distribution<std::mt19937::result_type> dist6(1, 10000000); // distribution in range [1, 6]
 
     return static_cast<int>(dist6(rng));
 }
 
 struct SuffixTree
 {
+    std::unordered_map<int, int> leaves; // Key -> Node unique id , Value -> suffix index in the original string
     std::unordered_map<int, Node> nodes;
     size_t charpos{0};
     // Constructor for SuffixTree that takes a string as input.
@@ -44,13 +45,14 @@ struct SuffixTree
         // Initialize the tree with an empty root node.
         nodes.emplace(0, Node{});
         // Iterate over each character in the input string.
-        for (size_t i = 0; i < str.length(); i++)
+        for (size_t i = 0; i < str.length() - 1; i++)
         {
             charpos = i;                    // since i becomes 0 inside `addSuffix` create a "more" global position
             addSuffix(str.substr(charpos)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
         }
     }
-    // // Ignore for now
+
+    // Print the tree
     void visualize()
     {
         if (nodes.size() == 0)
@@ -65,7 +67,7 @@ struct SuffixTree
             auto children = nodes.at(id).m_children;
             if (children.size() == 0)
             {
-                cout << "- " << nodes.at(id).m_sub << '\n';
+                cout << "- " << nodes.at(id).m_sub << " ~ " << leaves.at(id) << '\n';
                 return;
             }
             cout << "+ " << nodes.at(id).m_sub << '\n';
@@ -88,33 +90,19 @@ struct SuffixTree
         f(0, "");
     }
 
-    // void suffixIndex()
-    // // Retun the indeces of the suffixes in the input string
-    // {
-    //     // Iterate over the nodes
-    //     for (size_t k = 0; k < nodes.size() - 1; k++)
-    //     {
-    //         // Pick those without children, aka leaf nodes
-    //         if (nodes[k].ch.empty())
-    //         {
-    //             cout << "Index: " << nodes[k].startidx << ", Leaf Node Substring: " << nodes[k].sub << "\n";
-    //         }
-    //     }
-    // }
-
 private:
     void
     addSuffix(const string &suf)
     /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
     {
-        int currentNodeKey = 0;    // Current Node
-        size_t i = 0; // Current character of the suffix string
+        int currentNodeKey = 0; // Current Node
+        size_t i = 0;           // Current character of the suffix string
         // Check if the position of the current character is inside the suffix lenght
         while (i < suf.length())
         {
-            char b = suf[i]; // Current character in the suffix string
-            size_t x2 = 0;      // Index of the child node in the children list
-            int childOfInterestKey;                         // The next node
+            char b = suf[i];        // Current character in the suffix string
+            size_t x2 = 0;          // Index of the child node in the children list
+            int childOfInterestKey; // The next node
             /*This while loop check if any of  the children of the current node begin with the current character of the suffix,
             if none do so, it creates a new child node with the remained of the suffix from the current character position*/
             while (true)
@@ -127,9 +115,10 @@ private:
                 if (x2 == children.size())
                 {
                     // no matching child, create a new child node
-                    Node newNode{suf.substr(i), {}, charpos, currentNodeKey};    // The remainder of the suffix from from current character position becomes the new child node
+                    Node newNode{suf.substr(i), {}, charpos, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
                     int newKey = getRandomId();
-                    nodes.emplace(newKey, newNode);       // Add to nodes vector
+                    nodes.emplace(newKey, newNode);  // Add to nodes vector
+                    leaves.emplace(newKey, charpos); // If no matching character is found we always add a string with $, thus we create a leaf at that node
                     nodes.at(currentNodeKey).m_children.push_back(newKey);
                     return;
                 }
@@ -159,14 +148,14 @@ private:
                     Node newNode{sub2.substr(0, j), {childOfInterestKey}, charpos - j, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
                     newKey = getRandomId();
                     nodes.emplace(newKey, newNode);
-                    nodes.at(childOfInterestKey).m_sub = sub2.substr(j);
+                    nodes.at(childOfInterestKey).m_sub = sub2.substr(j); // We dont change the unique id, so the leaf is carried over while the substring changes inplace, good stuff
                     nodes.at(childOfInterestKey).m_parent = newKey;
                     nodes.at(currentNodeKey).m_children[x2] = newKey;
-                    break;                                                       // break and continue down the tree
+                    break; // break and continue down the tree
                 }
                 j++;
             }
-            i += j; // advance past part in common
+            i += j;                  // advance past part in common
             currentNodeKey = newKey; // continue down the tree
         }
     }
