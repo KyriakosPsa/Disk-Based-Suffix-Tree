@@ -35,6 +35,7 @@ class SuffixTree
 
         // Construct the suffix tree from a specified string
         void build(const string &str) {
+            m_length = str.length();
             // Initialize the tree with an empty root node.
             if (!(m_nodes.contains(0))) {
                 m_nodes.emplace(m_id, Node{});
@@ -43,8 +44,7 @@ class SuffixTree
             // Iterate over each character in the input string.
             for (size_t i = 0; i < str.length(); i++)
             {
-                m_length = i;                    // since i becomes 0 inside `addSuffix` create a "more" global position
-                addSuffix(str.substr(m_length)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
+                addSuffix(str.substr(i)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
             }
         }
 
@@ -72,7 +72,6 @@ class SuffixTree
             // dump children into original map
             for (auto &element: tba) {
                 m_nodes.emplace(element.first, element.second);
-                m_leaves.emplace(element.first, -1);
             }
         }
 
@@ -113,6 +112,32 @@ class SuffixTree
                 }
             }
         }
+
+    void makeLeaves(int node = 0, size_t leaf_num = 0, size_t lengthsofar = 0) // begin from the root node
+    {
+        if (leaf_num == m_length - 1)
+        {
+            return;
+        }
+        else
+        {
+            for (auto child : m_nodes.at(node).m_children)
+            {
+                if (m_nodes.at(child).m_children.empty())
+                {
+                    size_t test = m_nodes.at(child).m_sub.length();
+                    int sum = m_length - (lengthsofar + test);
+                    m_leaves.emplace(child, sum);
+                    leaf_num++;
+                }
+                else
+                {
+                    lengthsofar += m_nodes.at(child).m_sub.length();
+                    this->makeLeaves(child, leaf_num, lengthsofar);
+                }
+            }
+        }
+    }
         
         // Print the tree
         void visualize()
@@ -178,7 +203,6 @@ class SuffixTree
                     // no matching child, create a new child node
                     Node newNode{suf.substr(i), {}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
                     m_nodes.emplace(m_id, newNode);  // Add to nodes vector
-                    m_leaves.emplace(m_id, m_length); // If no matching character is found we always add a string with $, thus we create a leaf at that node
                     m_nodes.at(currentNodeKey).m_children.push_back(m_id);
                     m_id++;
                     return;
@@ -231,8 +255,9 @@ class SuffixTree
 int main()
 {
     SuffixTree tree{};
-    tree.build("BANANA");
+    tree.build("BANANA$");
     std::cout << std::boolalpha;
     std::cout << tree.isUnique("BAN") << '\n';
+    tree.makeLeaves();
     tree.visualize();
 }
