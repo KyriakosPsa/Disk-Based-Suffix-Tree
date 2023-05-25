@@ -7,176 +7,192 @@ using namespace std;
 
 class Node
 {
-    public:
-        string m_sub = "";      // a substring of the input string
-        vector<int> m_children; // vector of child nodes
-        int m_parent;
+public:
+    string m_sub = "";      // a substring of the input string
+    vector<int> m_children; // vector of child nodes
+    int m_parent;
 
-        // Default constructor for Node.
-        Node()
-        {
-            //  The node is initialized  empty.
-        }
+    // Default constructor for Node.
+    Node()
+    {
+        //  The node is initialized  empty.
+    }
 
-        // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
-        Node(const string &sub, initializer_list<int> children, int parent) : m_sub(sub), m_parent(parent)
-        {
-            // The child nodes of the node are inserted into the end of the children vector.
-            m_children.insert(m_children.end(), children);
-        }
+    // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
+    Node(const string &sub, initializer_list<int> children, int parent) : m_sub(sub), m_parent(parent)
+    {
+        // The child nodes of the node are inserted into the end of the children vector.
+        m_children.insert(m_children.end(), children);
+    }
 };
 
 class SuffixTree
-{    
-    public:
-        std::unordered_map<int, int> m_leaves; // Key -> Node unique id , Value -> suffix index in the original string
-        std::unordered_map<int, Node> m_nodes;
-        size_t m_length{0};
+{
+public:
+    std::unordered_map<int, int> m_leaves; // Key -> Node unique id , Value -> suffix index in the original string
+    std::unordered_map<int, Node> m_nodes;
+    size_t m_length{0};
 
-        // Construct the suffix tree from a specified string
-        void build(const string &str) {
-            m_length = str.length();
-            // Initialize the tree with an empty root node.
-            if (!(m_nodes.contains(0))) {
-                m_nodes.emplace(m_id, Node{});
+    // Construct the suffix tree from a specified string
+    void build(const string &str)
+    {
+        m_length = str.length();
+        // Initialize the tree with an empty root node.
+        if (m_nodes.count(0) == 0)
+        {
+            m_nodes.emplace(m_id, Node{});
+            m_id++;
+        }
+        // Iterate over each character in the input string.
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            addSuffix(str.substr(i)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
+        }
+    }
+
+    // Add a child with m_sub=str to all tree nodes that have only one child
+    void makeExplicit(const string &str)
+    {
+        // add children to a temp map so that the iterator is not invalidated
+        std::unordered_map<int, Node> tba;
+
+        // do the root node
+        Node newNode{str, {}, 0};
+        tba.emplace(m_id, newNode);
+        m_nodes.at(0).m_children.push_back(m_id);
+        m_id++;
+
+        for (auto &element : m_nodes)
+        {
+            // if node has only one child because it was split due to ending but no ending character was added
+            if (element.second.m_children.size() == 1)
+            {
+                Node newNode{str, {}, element.first};
+                tba.emplace(m_id, newNode);
+                element.second.m_children.push_back(m_id);
                 m_id++;
             }
-            // Iterate over each character in the input string.
-            for (size_t i = 0; i < str.length(); i++)
-            {
-                addSuffix(str.substr(i)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
-            }
         }
 
-        // Add a child with m_sub=str to all tree nodes that have only one child
-        void makeExplicit(const string &str) {
-            // add children to a temp map so that the iterator is not invalidated
-            std::unordered_map<int, Node> tba;
-
-            // do the root node
-            Node newNode{str, {}, 0};
-            tba.emplace(m_id, newNode);
-            m_nodes.at(0).m_children.push_back(m_id);
-            m_id++;
-
-            for (auto &element: m_nodes) {
-                // if node has only one child because it was split due to ending but no ending character was added
-                if (element.second.m_children.size() == 1) {
-                    Node newNode{str, {}, element.first};
-                    tba.emplace(m_id, newNode);
-                    element.second.m_children.push_back(m_id);
-                    m_id++;
-                }
-            }
-
-            // dump children into original map
-            for (auto &element: tba) {
-                m_nodes.emplace(element.first, element.second);
-            }
+        // dump children into original map
+        for (auto &element : tba)
+        {
+            m_nodes.emplace(element.first, element.second);
         }
+    }
 
-        // Check if a prefix is unique, meaning it is not already represented within the tree structure
-        bool isUnique(const string &str) {
-            int currentNode = 0;
-            int flag = currentNode;
-            std::string remaining = str;
-            while (true) {
-                for(auto child: m_nodes.at(currentNode).m_children) {
-                    std::string nodeStr = m_nodes.at(child).m_sub;
-                    size_t searchResult;
-                    if (nodeStr.length() > remaining.length()) {
-                        searchResult = nodeStr.rfind(remaining, 0);
-                        if (searchResult == 0) {
-                            remaining = "";
-                        }
-                    } else {
-                        searchResult = remaining.rfind(nodeStr, 0);
-                        if (searchResult == 0) {
-                            remaining = remaining.substr(nodeStr.length());
-                        }
-                    }
-
-                    if (searchResult == 0) {
-                        if (remaining.length() == 0) {
-                            return false;
-                        } else {
-                            currentNode = child;
-                            break;
-                        }
-                    }
-                }
-                if (flag == currentNode) {
-                    return true;
-                } else {
-                    flag = currentNode;
-                }
-            }
-        }
-
-    void makeLeaves(int node = 0, size_t leaf_num = 0, size_t lengthsofar = 0) // begin from the root node
+    // Check if a prefix is unique, meaning it is not already represented within the tree structure
+    bool isUnique(const string &str)
     {
-        if (leaf_num == m_length - 1)
+        int currentNode = 0;
+        int flag = currentNode;
+        std::string remaining = str;
+        while (true)
         {
-            return;
-        }
-        else
-        {
-            for (auto child : m_nodes.at(node).m_children)
+            for (auto child : m_nodes.at(currentNode).m_children)
             {
-                if (m_nodes.at(child).m_children.empty())
+                std::string nodeStr = m_nodes.at(child).m_sub;
+                size_t searchResult;
+                if (nodeStr.length() > remaining.length())
                 {
-                    size_t test = m_nodes.at(child).m_sub.length();
-                    int sum = m_length - (lengthsofar + test);
-                    m_leaves.emplace(child, sum);
-                    leaf_num++;
+                    searchResult = nodeStr.rfind(remaining, 0);
+                    if (searchResult == 0)
+                    {
+                        remaining = "";
+                    }
                 }
                 else
                 {
-                    lengthsofar += m_nodes.at(child).m_sub.length();
-                    this->makeLeaves(child, leaf_num, lengthsofar);
+                    searchResult = remaining.rfind(nodeStr, 0);
+                    if (searchResult == 0)
+                    {
+                        remaining = remaining.substr(nodeStr.length());
+                    }
                 }
+
+                if (searchResult == 0)
+                {
+                    if (remaining.length() == 0)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        currentNode = child;
+                        break;
+                    }
+                }
+            }
+            if (flag == currentNode)
+            {
+                return true;
+            }
+            else
+            {
+                flag = currentNode;
             }
         }
     }
-        
-        // Print the tree
-        void visualize()
+
+    void makeLeaves()
+    {
+        for (auto &element : m_nodes) // Check all the nodes
         {
-            if (m_nodes.size() == 0)
+            if (element.second.m_children.empty()) // if a node has no children -> leaf node
             {
-                cout << "<empty>\n";
+                size_t parentlen{0}; // Initialize the length of the path from the leaf to root
+                int parentNode{0};
+                parentlen += element.second.m_sub.length(); // Add the length of the leaf node substring
+                parentNode = element.second.m_parent;       // Pass the first parent
+                while (m_nodes.count(parentNode) > 0)       // Iterate over all available parents
+                {
+                    parentlen += m_nodes.at(parentNode).m_sub.length(); // Extended the length of the path based on each parent substring
+                    parentNode = m_nodes.at(parentNode).m_parent;
+                }
+                m_leaves.emplace(element.first, m_length - parentlen); // Add the leaf suffix index to the node without children we identified in the if statement
+            }
+        }
+    }
+
+    // Print the tree
+    void visualize()
+    {
+        if (m_nodes.size() == 0)
+        {
+            cout << "<empty>\n";
+            return;
+        }
+
+        function<void(int, const string &)> f;
+        f = [&](int id, const string &pre)
+        {
+            auto children = m_nodes.at(id).m_children;
+            if (children.size() == 0)
+            {
+                cout << "- " << m_nodes.at(id).m_sub << " ~ " << m_leaves.at(id) << '\n';
                 return;
             }
+            cout << "+ " << m_nodes.at(id).m_sub << '\n';
 
-            function<void(int, const string &)> f;
-            f = [&](int id, const string &pre)
-            {
-                auto children = m_nodes.at(id).m_children;
-                if (children.size() == 0)
+            auto it = begin(children);
+            if (it != end(children))
+                do
                 {
-                    cout << "- " << m_nodes.at(id).m_sub << " ~ " << m_leaves.at(id) << '\n';
-                    return;
-                }
-                cout << "+ " << m_nodes.at(id).m_sub << '\n';
+                    if (next(it) == end(children))
+                        break;
+                    cout << pre << "+-";
+                    f(*it, pre + "| ");
+                    it = next(it);
+                } while (true);
 
-                auto it = begin(children);
-                if (it != end(children))
-                    do
-                    {
-                        if (next(it) == end(children))
-                            break;
-                        cout << pre << "+-";
-                        f(*it, pre + "| ");
-                        it = next(it);
-                    } while (true);
+            cout << pre << "+-";
+            f(children[children.size() - 1], pre + "  ");
+        };
 
-                cout << pre << "+-";
-                f(children[children.size() - 1], pre + "  ");
-            };
+        f(0, "");
+    }
 
-            f(0, "");
-        }
-    private:
+private:
     int m_id{0};
     void addSuffix(const string &suf)
     /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
@@ -202,7 +218,7 @@ class SuffixTree
                 {
                     // no matching child, create a new child node
                     Node newNode{suf.substr(i), {}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
-                    m_nodes.emplace(m_id, newNode);  // Add to nodes vector
+                    m_nodes.emplace(m_id, newNode);                  // Add to nodes vector
                     m_nodes.at(currentNodeKey).m_children.push_back(m_id);
                     m_id++;
                     return;
@@ -225,10 +241,13 @@ class SuffixTree
             char sub1;
             while (j < sub2.size())
             {
-                if (i+j == suf.length()) {
+                if (i + j == suf.length())
+                {
                     sub1 = '\0';
-                } else {
-                    sub1 = suf.at(i+j);
+                }
+                else
+                {
+                    sub1 = suf.at(i + j);
                 }
 
                 // if the characters of the suffix and the node substring differ
@@ -245,7 +264,7 @@ class SuffixTree
                 }
                 j++;
             }
-            i += j;                  // advance past part in common
+            i += j;                // advance past part in common
             currentNodeKey = m_id; // continue down the tree
             m_id++;
         }
