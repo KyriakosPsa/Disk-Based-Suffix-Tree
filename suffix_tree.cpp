@@ -5,90 +5,91 @@
 
 using namespace std;
 
-struct Node
-{
-    string m_sub = "";      // a substring of the input string
-    vector<int> m_children; // vector of child nodes
-    size_t m_startidx;
-    int m_parent;
-    // int endidx;
-    // Default constructor for Node.
-    Node() : m_startidx{0}
-    {
-        //  The node is initialized  empty.
-    }
-    // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
-    Node(const string &sub, initializer_list<int> children, size_t startidx, int parent) : m_sub(sub), m_startidx(startidx), m_parent(parent)
-    {
-        // The child nodes of the node are inserted into the end of the children vector.
-        m_children.insert(m_children.end(), children);
-    }
-};
-
-int getRandomId()
-{
+int getRandomId() {
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(1, 10000000); // distribution in range [1, 6]
+    std::uniform_int_distribution<std::mt19937::result_type> dist6(1,10000000); // distribution in range [1, 6]
 
     return static_cast<int>(dist6(rng));
 }
 
-struct SuffixTree
+class Node
 {
-    std::unordered_map<int, int> leaves; // Key -> Node unique id , Value -> suffix index in the original string
-    std::unordered_map<int, Node> nodes;
-    size_t charpos{0};
-    // Constructor for SuffixTree that takes a string as input.
-    SuffixTree(const string &str)
-    {
-        // Initialize the tree with an empty root node.
-        nodes.emplace(0, Node{});
-        // Iterate over each character in the input string.
-        for (size_t i = 0; i < str.length() - 1; i++)
+    public:
+        string m_sub = "";      // a substring of the input string
+        vector<int> m_children; // vector of child nodes
+        size_t m_startidx;
+        int m_parent;
+        // int endidx;
+        // Default constructor for Node.
+        Node() : m_startidx{0}
         {
-            charpos = i;                    // since i becomes 0 inside `addSuffix` create a "more" global position
-            addSuffix(str.substr(charpos)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
+            //  The node is initialized  empty.
         }
-    }
-
-    // Print the tree
-    void visualize()
-    {
-        if (nodes.size() == 0)
+        // Constructor for Node that takes a substring and a list of child nodes as well a starting index.
+        Node(const string &sub, initializer_list<int> children, size_t startidx, int parent) : m_sub(sub), m_startidx(startidx), m_parent(parent)
         {
-            cout << "<empty>\n";
-            return;
+            // The child nodes of the node are inserted into the end of the children vector.
+            m_children.insert(m_children.end(), children);
         }
+};
 
-        function<void(int, const string &)> f;
-        f = [&](int id, const string &pre)
+class SuffixTree
+{    
+    public:
+        std::unordered_map<int, int> leaves; // Key -> Node unique id , Value -> suffix index in the original string
+        std::unordered_map<int, Node> nodes;
+        size_t charpos{0};
+        // Constructor for SuffixTree that takes a string as input.
+        SuffixTree(const string &str)
         {
-            auto children = nodes.at(id).m_children;
-            if (children.size() == 0)
+            // Initialize the tree with an empty root node.
+            nodes.emplace(0, Node{});
+            // Iterate over each character in the input string.
+            for (size_t i = 0; i < str.length(); i++)
             {
-                cout << "- " << nodes.at(id).m_sub << " ~ " << leaves.at(id) << '\n';
+                charpos = i;                    // since i becomes 0 inside `addSuffix` create a "more" global position
+                addSuffix(str.substr(charpos)); // Pick a suffix string from the i position to the end of the input string and add it to the tree
+            }
+        }
+
+        // Print the tree
+        void visualize()
+        {
+            if (nodes.size() == 0)
+            {
+                cout << "<empty>\n";
                 return;
             }
-            cout << "+ " << nodes.at(id).m_sub << '\n';
 
-            auto it = begin(children);
-            if (it != end(children))
-                do
+            function<void(int, const string &)> f;
+            f = [&](int id, const string &pre)
+            {
+                auto children = nodes.at(id).m_children;
+                if (children.size() == 0)
                 {
-                    if (next(it) == end(children))
-                        break;
-                    cout << pre << "+-";
-                    f(*it, pre + "| ");
-                    it = next(it);
-                } while (true);
+                    cout << "- " << nodes.at(id).m_sub << " ~ " << leaves.at(id) << '\n';
+                    return;
+                }
+                cout << "+ " << nodes.at(id).m_sub << '\n';
 
-            cout << pre << "+-";
-            f(children[children.size() - 1], pre + "  ");
-        };
+                auto it = begin(children);
+                if (it != end(children))
+                    do
+                    {
+                        if (next(it) == end(children))
+                            break;
+                        cout << pre << "+-";
+                        f(*it, pre + "| ");
+                        it = next(it);
+                    } while (true);
 
-        f(0, "");
-    }
+                cout << pre << "+-";
+                f(children[children.size() - 1], pre + "  ");
+            };
+
+            f(0, "");
+        }
 
 private:
     void
