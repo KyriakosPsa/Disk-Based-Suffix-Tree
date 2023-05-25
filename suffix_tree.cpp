@@ -33,6 +33,7 @@ class SuffixTree
         std::unordered_map<int, Node> m_nodes;
         size_t m_length{0};
 
+        // Construct the suffix tree from a specified string
         void build(const string &str) {
             // Initialize the tree with an empty root node.
             if (!(m_nodes.contains(0))) {
@@ -47,6 +48,7 @@ class SuffixTree
             }
         }
 
+        // Add a child with m_sub=str to all tree nodes that have only one child
         void makeExplicit(const string &str) {
             // add children to a temp map so that the iterator is not invalidated
             std::unordered_map<int, Node> tba;
@@ -74,6 +76,7 @@ class SuffixTree
             }
         }
 
+        // Check if a prefix is unique, meaning it is not already represented within the tree structure
         bool isUnique(const string &str) {
             int currentNode = 0;
             int flag = currentNode;
@@ -110,6 +113,7 @@ class SuffixTree
                 }
             }
         }
+        
         // Print the tree
         void visualize()
         {
