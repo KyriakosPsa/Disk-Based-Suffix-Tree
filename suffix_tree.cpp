@@ -315,6 +315,7 @@ public:
             }
         }
     }
+    
     void deleteNode(int node) {
         m_nodes.erase(node);
     }
