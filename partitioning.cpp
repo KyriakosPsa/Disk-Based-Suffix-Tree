@@ -1,12 +1,5 @@
 #include <iostream>
 #include <fstream>
-#ifdef _WIN32
-#include <direct.h>
-#define CREATE_DIR(dir) _mkdir(dir) // For Windows systems
-#else
-#include <sys/stat.h>
-#define CREATE_DIR(dir) mkdir(dir, 0777) // For Linux systems
-#endif
 using namespace std;
 
 void ReadWritefile(const string &inputFileName, const int t, int position = 0)
