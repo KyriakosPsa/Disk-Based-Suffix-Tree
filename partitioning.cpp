@@ -1,5 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <cstdio>
+#include <chrono>
+#include <thread>
+
 using namespace std;
 
 void ReadWritefile(const string &inputFileName, const int t, int position = 0)
@@ -20,7 +24,7 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
     int bytesRead = inputFile.gcount(); // Get the number of characters read
     if (bytesRead > 0)
     {
-      string tmpfilename = "prfx_" + to_string(filecount) + ".txt";
+      const string tmpfilename = "prfx_" + to_string(filecount) + ".txt";
       ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
       if (!outputFile)
       {
@@ -41,12 +45,45 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
   }
 }
 
+void removeFiles(const string &mode = "prefix")
+{
+  int status{0};        // remove returns 0 if a file is removed
+  int filecount{0};     // the id tag used in our naming shceme
+  if (mode == "prefix") // prefix mode, delete prefix files
+  {
+    const string fileprefix = "prfx_";
+    const string filesuffix = ".txt";
+    while (status == 0)
+    {
+      string filename = fileprefix + to_string(filecount) + filesuffix;
+      status = remove(filename.c_str());
+      filecount++;
+    }
+    return;
+  }
+  else if (mode == "suffix_tree") // suffix tree mode, delete suffix tree files
+  {
+    while (status == 0)
+    {
+      // Awaiting implementation
+    }
+    return;
+  }
+  else
+  {
+    cerr << "Invalid mode";
+    return;
+  }
+}
+
 int main()
 {
   // Test the ReadFile function
   string inputFileName = "input.txt";
-  const int t = 100;
+  const int t = 2;
   int position = 0;
   ReadWritefile(inputFileName, t, position);
+  string del_mode = "prefix";
+  removeFiles(del_mode);
   return 0;
 }
