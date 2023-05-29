@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <cstdio>
 
 using namespace std;
@@ -13,12 +14,12 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
     cerr << "Failed to open input file.";
     return;
   }
-  char buffer[t]; // Define a region in memory to contain the t characters to read
+  vector<char> buffer(t); // Define a region in memory to contain the t characters to read
   int filecount = 0;
   while (!inputFile.eof())
   {
     inputFile.seekg(fileposition);      // Move the pointer to that position
-    inputFile.read(buffer, t);          // Read characters from input file
+    inputFile.read(buffer.data(), t);   // Read characters from input file
     int bytesRead = inputFile.gcount(); // Get the number of characters read
     if (bytesRead > 0)
     {
@@ -29,7 +30,7 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
         cerr << "Failed to open output file.";
         return;
       }
-      outputFile.write(buffer, bytesRead); // Write characters to output file
+      outputFile.write(buffer.data(), bytesRead); // Write characters to output file
       outputFile.close();
       fileposition += t;
       filecount += 1;
