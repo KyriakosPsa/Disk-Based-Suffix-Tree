@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void ReadWritefile(const string &inputFileName, const int t, int position = 0)
+void ReadWritefile(const string &inputFileName, const size_t t, int position = 0)
 {
   int fileposition = position;       // The position of the pointer in the file
   ifstream inputFile(inputFileName); // Open input file stream
@@ -18,9 +18,9 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
   int filecount = 0;
   while (!inputFile.eof())
   {
-    inputFile.seekg(fileposition);      // Move the pointer to that position
-    inputFile.read(buffer.data(), t);   // Read characters from input file
-    int bytesRead = inputFile.gcount(); // Get the number of characters read
+    inputFile.seekg(fileposition);         // Move the pointer to that position
+    inputFile.read(buffer.data(), (int)t); // Read characters from input file
+    int bytesRead = inputFile.gcount();    // Get the number of characters read
     if (bytesRead > 0)
     {
       const string tmpfilename = "prfx_" + to_string(filecount) + ".txt";
@@ -32,7 +32,7 @@ void ReadWritefile(const string &inputFileName, const int t, int position = 0)
       }
       outputFile.write(buffer.data(), bytesRead); // Write characters to output file
       outputFile.close();
-      fileposition += t;
+      fileposition += (int)t;
       filecount += 1;
     }
     else
@@ -83,6 +83,6 @@ int main()
   int position = 0;
   ReadWritefile(inputFileName, t, position);
   string del_mode = "prefix";
-  removeFiles(del_mode);
+  removeFiles(del_mode); // Uncomment to remove
   return 0;
 }
