@@ -274,7 +274,7 @@ public:
                     searchResult = nodeStr.rfind(remaining, 0);
                     if (searchResult == 0)
                     {
-                        remaining = "PARTIAL";
+                        remaining = "";
                     }
                 }
                 else
@@ -291,9 +291,6 @@ public:
                     if (remaining.length() == 0)
                     {
                         involvedNodes.push_back(child);
-                        return involvedNodes;
-                    } else if (remaining == "PARTIAL") {
-                        involvedNodes.push_back(-child);
                         return involvedNodes;
                     }
                     else
@@ -415,24 +412,22 @@ private:
     }
 };
 
-SuffixTree* splitTree(SuffixTree &tree, const std::string &str, int prefixLocation) {
+SuffixTree* splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation) {
     std::string rootString;
-    if (prefixLocation < 0) {
-        prefixLocation = -prefixLocation;
-        rootString = tree.m_nodes.at(prefixLocation).m_sub;
-    } else {
-        rootString = str;
+    int finalNode = prefixLocation.back();
+    for (int node: prefixLocation) {
+        rootString += tree.m_nodes.at(node).m_sub;
     }
-    std::vector<std::pair<int, Node>> newNodes;
 
     // add new root node and remove it as child from parent in old tree
-    Node newRoot{rootString, tree.m_nodes.at(prefixLocation).m_children, -1};
-    newNodes.push_back(std::make_pair(prefixLocation, newRoot));
-    tree.removeAsChild(prefixLocation);
+    Node newRoot{rootString, tree.m_nodes.at(finalNode).m_children, -1};
+    std::vector<std::pair<int, Node>> newNodes;
+    newNodes.push_back(std::make_pair(finalNode, newRoot));
+    tree.removeAsChild(finalNode);
 
-    tree.getAllChildren(prefixLocation, newNodes);
+    tree.getAllChildren(finalNode, newNodes);
     tree.deleteNode(newNodes);
-    return new SuffixTree(newNodes, str.length(), prefixLocation);
+    return new SuffixTree(newNodes, str.length(), finalNode);
 }
 
 int main()
@@ -445,10 +440,10 @@ int main()
     tree.visualize();
     cout << '\n';
 
-    std::string prefix{"ANA"};
+    std::string prefix{"NAN"};
     vector<int> location = tree.queryPrefix(prefix);
     if (!(location.empty())) {
-        SuffixTree newTree = *(splitTree(tree, prefix, location.back()));
+        SuffixTree newTree = *(splitTree(tree, prefix, location));
         newTree.visualizeNoLeaves();
         cout << '\n';
     }
