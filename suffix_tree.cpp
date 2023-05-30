@@ -31,7 +31,8 @@ public:
         m_children.insert(m_children.end(), children.begin(), children.end());
     }
 
-    size_t getSubLength() {
+    size_t getSubLength()
+    {
         return m_sub.length();
     }
 };
@@ -44,14 +45,16 @@ public:
     size_t m_length{0};
     int m_rootId{0};
 
-    SuffixTree() {
-
+    SuffixTree()
+    {
     }
 
-    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId) {
+    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId)
+    {
         m_length = length;
         m_rootId = rootId;
-        for (auto node: nodes) {
+        for (auto node : nodes)
+        {
             m_nodes.insert(node);
         }
     }
@@ -166,7 +169,7 @@ public:
                 int parentNode{0};
                 parentlen += element.second.m_sub.length(); // Add the length of the leaf node substring
                 parentNode = element.second.m_parent;       // Pass the first parent
-                while (parentNode >= 0)       // Iterate over all available parents
+                while (parentNode >= 0)                     // Iterate over all available parents
                 {
                     parentlen += m_nodes.at(parentNode).m_sub.length(); // Extended the length of the path based on each parent substring
                     parentNode = m_nodes.at(parentNode).m_parent;
@@ -251,14 +254,17 @@ public:
         f(m_rootId, "");
     }
 
-    void getAllChildren(int node, std::vector<std::pair<int, Node>> &children) {
-        for (auto child: m_nodes.at(node).m_children) {
+    void getAllChildren(int node, std::vector<std::pair<int, Node>> &children)
+    {
+        for (auto child : m_nodes.at(node).m_children)
+        {
             children.push_back(std::make_pair(child, m_nodes.at(child)));
             this->getAllChildren(child, children);
         }
     }
 
-    vector<int> queryPrefix(const string &str) {
+    vector<int> queryPrefix(const string &str)
+    {
         int currentNode = 0;
         int flag = currentNode;
         std::string remaining = str;
@@ -312,23 +318,28 @@ public:
             }
         }
     }
-    
-    void deleteNode(int node) {
+
+    void deleteNode(int node)
+    {
         m_nodes.erase(node);
     }
 
-    void removeAsChild(int node) {
+    void removeAsChild(int node)
+    {
         int parent = m_nodes.at(node).m_parent;
-        if (m_nodes.contains(parent)) {
-            vector<int>* children = &m_nodes.at(parent).m_children;
+        if (m_nodes.contains(parent))
+        {
+            vector<int> *children = &m_nodes.at(parent).m_children;
             std::vector<int>::iterator position = std::find((*children).begin(), (*children).end(), node);
             if (position != (*children).end()) // == myVector.end() means the element was not found
                 (*children).erase(position);
         }
     }
 
-    void deleteNode(std::vector<std::pair<int, Node>> nodes) {
-        for (auto node: nodes) {
+    void deleteNode(std::vector<std::pair<int, Node>> nodes)
+    {
+        for (auto node : nodes)
+        {
             deleteNode(node.first);
         }
     }
@@ -412,10 +423,12 @@ private:
     }
 };
 
-SuffixTree* splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation) {
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation)
+{
     std::string rootString;
     int finalNode = prefixLocation.back();
-    for (int node: prefixLocation) {
+    for (int node : prefixLocation)
+    {
         rootString += tree.m_nodes.at(node).m_sub;
     }
 
@@ -442,7 +455,8 @@ int main()
 
     std::string prefix{"NAN"};
     vector<int> location = tree.queryPrefix(prefix);
-    if (!(location.empty())) {
+    if (!(location.empty()))
+    {
         SuffixTree newTree = *(splitTree(tree, prefix, location));
         newTree.visualizeNoLeaves();
         cout << '\n';
