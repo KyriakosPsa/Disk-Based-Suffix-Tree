@@ -1,16 +1,30 @@
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <random>
+#include <string>
+#include <sstream>
 
 using namespace std;
+
+std::vector<std::string> splitByDelimiter(const std::string &str, char delimiter) {
+    std::vector<std::string> segments;
+    std::string segment;
+    std::stringstream stream(str);
+    while(std::getline(stream, segment, delimiter))
+        {
+            segments.push_back(segment);
+        }
+    return segments;
+}
 
 class Node
 {
 public:
-    string m_sub = "";      // a substring of the input string
-    vector<int> m_children; // vector of child nodes
-    int m_parent;
+    std::string m_sub = "";      // a substring of the input string
+    vector<int> m_children{}; // vector of child nodes
+    int m_parent{-1};
 
     // Default constructor for Node.
     Node()
@@ -31,17 +45,52 @@ public:
         m_children.insert(m_children.end(), children.begin(), children.end());
     }
 
-    size_t getSubLength()
+    Node(const string &str)
     {
-        return m_sub.length();
+        std::vector<std::string> segments = splitByDelimiter(str, ',');;
+        m_sub = segments[0];
+        m_children = deserializeChildren(segments[1]);
+        m_parent = stoi(segments[2]);
+    }
+
+    std::string serialize()
+    {
+        std::string gen{""};
+        gen += m_sub;
+        gen += ',';
+        gen += serializeChildren();
+        gen += ',';
+        gen += to_string(m_parent);
+        return gen;
+    }
+
+    std::string serializeChildren() {
+        std::string temp{""};
+        for (size_t i = 0; i < m_children.size(); i++) {
+            temp += to_string(m_children[i]);
+            if (i != m_children.size() - 1) {
+                temp += '_';
+            }
+        
+        }
+        return temp;
+    }
+
+    std::vector<int> deserializeChildren(std::string &str) {
+        std::vector<std::string> segments = splitByDelimiter(str, '_');
+        std::vector<int> children{};
+        for (auto seg: segments) {
+            children.push_back(stoi(seg));
+        }
+        return children;
     }
 };
 
 class SuffixTree
 {
 public:
-    std::unordered_map<int, Node> m_nodes;
-    std::unordered_map<int, int> m_leaves; // Key -> Node unique id , Value -> suffix index in the original string
+    std::unordered_map<int, Node> m_nodes{};
+    std::unordered_map<int, int> m_leaves{}; // Key -> Node unique id , Value -> suffix index in the original string
     size_t m_length{0};
     int m_rootId{0};
 
@@ -57,6 +106,21 @@ public:
         {
             m_nodes.insert(node);
         }
+    }
+
+    SuffixTree(ifstream &archive)
+    {
+        std::string temp;
+        getline(archive, temp);
+        m_leaves = deserializeLeaves(temp);
+        getline(archive, temp);
+        m_nodes = deserializeNodes(temp);
+        getline(archive, temp);
+        m_length = stringToSize(temp);
+        getline(archive, temp);
+        m_rootId = stoi(temp);
+
+        archive.close();
     }
 
     // Construct the suffix tree from a specified string
@@ -344,6 +408,64 @@ public:
         }
     }
 
+    size_t stringToSize(std::string &str) {
+        stringstream stream(str);
+        size_t output;
+        stream >> output;
+    
+        return output;
+    }
+
+    std::string serializeLeaves() {
+        std::string gen{""};
+        for (auto i: m_leaves) {
+            gen+= to_string(i.first);
+            gen+= '.';
+            gen+= to_string(i.second);
+            gen+= '.';
+        }
+        return gen;
+    }
+
+    std::unordered_map<int, int> deserializeLeaves(std::string &line) {
+        std::vector<std::string> segments = splitByDelimiter(line, '.');
+        std::unordered_map<int, int> leaves;
+        for (size_t i = 0; i < segments.size(); i += 2) {
+            leaves.emplace(stoi(segments[i]), stoi(segments[i+1]));
+        }
+        return leaves;
+    }
+
+     std::string serializeNodes() {
+        std::string gen{""};
+        for (auto i: m_nodes) {
+            gen+= to_string(i.first);
+            gen+= '.';
+            gen+= i.second.serialize();
+            gen+= '.';
+        }
+        return gen;
+    }
+
+    std::unordered_map<int, Node> deserializeNodes(std::string &line) {
+        std::vector<std::string> segments = splitByDelimiter(line, '.');
+        std::unordered_map<int, Node> nodes;
+
+        for (size_t i = 0; i < segments.size(); i += 2) {
+            nodes.emplace(stoi(segments[i]), Node(segments[i+1]));
+        }
+        return nodes;
+    }
+
+    void serialize(ofstream &archive)
+    {
+        archive << serializeLeaves() << '\n';
+        archive << serializeNodes() << '\n';
+        archive << m_length << '\n';
+        archive << m_rootId << '\n';
+        archive.close();
+    }
+
 private:
     int m_id{0};
     void addSuffix(const string &suf)
@@ -453,13 +575,19 @@ int main()
     tree.visualize();
     cout << '\n';
 
-    std::string prefix{"NAN"};
-    vector<int> location = tree.queryPrefix(prefix);
-    if (!(location.empty()))
-    {
-        SuffixTree newTree = *(splitTree(tree, prefix, location));
-        newTree.visualizeNoLeaves();
-        cout << '\n';
-    }
-    tree.visualize();
+    std::ofstream ofs("filename.txt");
+    tree.serialize(ofs);
+
+    ifstream ifs("filename.txt");
+    SuffixTree tree2(ifs);
+    tree2.visualize();
+    // std::string prefix{"NAN"};
+    // vector<int> location = tree.queryPrefix(prefix);
+    // if (!(location.empty()))
+    // {
+    //     SuffixTree newTree = *(splitTree(tree, prefix, location));
+    //     newTree.visualizeNoLeaves();
+    //     cout << '\n';
+    // }
+    // tree.visualize();
 }
