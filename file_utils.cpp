@@ -46,3 +46,75 @@ long long int preprocess_sequence(string filename)
     exit(1);
   }
 }
+
+void removeFiles(const string &mode = "prefix")
+// delete files based on mode, either all the prefix files or suffix tree files
+{
+  int status{0};        // remove returns 0 if a file is removed
+  int filecount{0};     // the id tag used in our naming shceme
+  if (mode == "prefix") // prefix mode, delete prefix files
+  {
+    const string fileprefix = "prfx_";
+    const string filesuffix = ".txt";
+    while (status == 0)
+    {
+      string filename = fileprefix + to_string(filecount) + filesuffix;
+      status = remove(filename.c_str());
+      filecount++;
+    }
+    return;
+  }
+  else if (mode == "suffix_tree") // suffix tree mode, delete suffix tree files
+  {
+    while (status == 0)
+    {
+      // Awaiting implementation
+    }
+    return;
+  }
+  else
+  {
+    cerr << "Invalid mode";
+    return;
+  }
+}
+
+void partitionFile(string &inputFileName, const size_t t)
+// Open input file and exhaustively partition it in t files : prfx_1.txt, to prfx_2.txt etc.
+{
+  int fileposition{0};               // The position of the pointer in the file
+  ifstream inputFile(inputFileName); // Open input file stream
+  if (!inputFile)
+  {
+    cerr << "Failed to open input file.";
+    return;
+  }
+  vector<char> buffer(t); // Define a region in memory to contain the t characters to read
+  int filecount = 0;
+  while (!inputFile.eof())
+  {
+    inputFile.seekg(fileposition);         // Move the pointer to that position
+    inputFile.read(buffer.data(), (int)t); // Read characters from input file
+    int bytesRead = inputFile.gcount();    // Get the number of characters read
+    if (bytesRead > 0)
+    {
+      const string tmpfilename = "prfx_" + to_string(filecount) + ".txt";
+      ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
+      if (!outputFile)
+      {
+        cerr << "Failed to open output file.";
+        return;
+      }
+      outputFile.write(buffer.data(), bytesRead); // Write characters to output file
+      outputFile.close();
+      fileposition += (int)t;
+      filecount += 1;
+    }
+    else
+    {
+      // Reached the end of the file
+      inputFile.close(); // Close input file stream
+      break;
+    }
+  }
+}
