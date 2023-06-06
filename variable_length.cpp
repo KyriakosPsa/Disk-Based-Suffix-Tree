@@ -254,21 +254,21 @@ unsigned int getFileSize(string fileName)
     return length;
 }
 
-int main()
-{
-    ifstream sequenceFile;
-    string file{"input\\NC_045512v2.fa"};
-    sequenceFile.open(file);
+// int main()
+// {
+//     ifstream sequenceFile;
+//     string file{"input\\NC_045512v2.fa"};
+//     sequenceFile.open(file);
 
-    unsigned int fileSize = getFileSize(file);
-    string sequence;
-    sequence.reserve(fileSize);
-    cout << fileSize << "\n";
-    readIntoString(sequence, sequenceFile);
-    size_t sequenceLength = sequence.length();
-    std::cout << round(fileSize/3000) << '\n';
-    runSinglePass(sequence, 50, sequenceLength);
-    runMultiPass(sequence, 50, sequenceLength);
-    sequenceFile.close();
-    return 0;
-}
+//     unsigned int fileSize = getFileSize(file);
+//     string sequence;
+//     sequence.reserve(fileSize);
+//     cout << fileSize << "\n";
+//     readIntoString(sequence, sequenceFile);
+//     size_t sequenceLength = sequence.length();
+//     std::cout << round(fileSize/3000) << '\n';
+//     runSinglePass(sequence, 50, sequenceLength);
+//     runMultiPass(sequence, 50, sequenceLength);
+//     sequenceFile.close();
+//     return 0;
+// }

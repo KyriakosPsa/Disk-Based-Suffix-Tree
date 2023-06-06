@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -57,21 +58,21 @@ private:
   }
 };
 
-// Testing
-int main()
-{
-  fileOp myFileOp{0, 0};
-  char testChar;
-  int t = 0;
-  while (true)
-  {
-    testChar = myFileOp.readCharacter();
-    cout << testChar << "\n";
-    t++;
-    if (t == 50)
-    {
-      break;
-    }
-  }
-  return 0;
-}
+// // Testing
+// int main()
+// {
+//   fileOp myFileOp{0, 0};
+//   char testChar;
+//   int t = 0;
+//   while (true)
+//   {
+//     testChar = myFileOp.readCharacter();
+//     cout << testChar << "\n";
+//     t++;
+//     if (t == 50)
+//     {
+//       break;
+//     }
+//   }
+//   return 0;
+// }
