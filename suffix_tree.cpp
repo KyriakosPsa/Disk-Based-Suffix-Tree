@@ -7,6 +7,7 @@
 #include <sstream>
 #include "node.h"
 #include "suffix_tree.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -25,7 +26,7 @@ SuffixTree::SuffixTree()
 {
 }
 
-SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId)
+SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId, IdFactory *idFactory)
 {
     m_length = length;
     m_rootId = rootId;
@@ -33,6 +34,7 @@ SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, i
     {
         m_nodes.insert(node);
     }
+    m_idFactory = idFactory;
 }
 
 SuffixTree::SuffixTree(ifstream &archive)
@@ -51,14 +53,16 @@ SuffixTree::SuffixTree(ifstream &archive)
 }
 
 // Construct the suffix tree from a specified string
-void SuffixTree::build(const string &str, const string &prefix)
+SuffixTree::SuffixTree(const string &str, IdFactory *idFactory, const string &prefix)
 {
+    m_idFactory = idFactory;
     m_length = str.length();
     // Initialize the tree with an empty root node.
     // root parent = -1
-    m_nodes.emplace(m_id, Node{prefix, {}, -1});
-    m_rootId = m_id;
-    m_id++;
+    int id = (*m_idFactory).createId();
+    m_nodes.emplace(id, Node{prefix, {}, -1});
+    m_rootId = id;
+
     // Iterate over each character in the input string.
     for (size_t i = 0; i < str.length(); i++)
     {
@@ -74,9 +78,9 @@ void SuffixTree::makeExplicit(const string &str)
 
     // do the root node
     Node newNode{str, {}, 0};
-    tba.emplace(m_id, newNode);
-    m_nodes.at(0).m_children.push_back(m_id);
-    m_id++;
+    int id = (*m_idFactory).createId();
+    tba.emplace(id, newNode);
+    m_nodes.at(0).m_children.push_back(id);
 
     for (auto &element : m_nodes)
     {
@@ -84,9 +88,9 @@ void SuffixTree::makeExplicit(const string &str)
         if (element.second.m_children.size() == 1)
         {
             Node newNode{str, {}, element.first};
-            tba.emplace(m_id, newNode);
-            element.second.m_children.push_back(m_id);
-            m_id++;
+            int id = (*m_idFactory).createId();
+            tba.emplace(id, newNode);
+            element.second.m_children.push_back(id);
         }
     }
 
@@ -293,7 +297,7 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
 
 vector<int> SuffixTree::queryPrefix(const string &str)
 {
-    int currentNode = 0;
+    int currentNode = m_rootId;
     int flag = currentNode;
     std::string remaining = str;
     vector<int> involvedNodes;
@@ -403,7 +407,7 @@ void SuffixTree::serialize(const std::string &fileName)
 void SuffixTree::addSuffix(const string &suf)
 /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
 {
-    int currentNodeKey = 0; // Current Node
+    int currentNodeKey = m_rootId; // Current Node
     size_t i = 0;           // Current character of the suffix string
     // Check if the position of the current character is inside the suffix lenght
     while (i < suf.length())
@@ -425,11 +429,11 @@ void SuffixTree::addSuffix(const string &suf)
                 */
             if (x2 == children.size())
             {
+                int id = (*m_idFactory).createId();
                 // no matching child, create a new child node
                 Node newNode{suf.substr(i), {}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
-                m_nodes.emplace(m_id, newNode);                  // Add to nodes vector
-                m_nodes.at(currentNodeKey).m_children.push_back(m_id);
-                m_id++;
+                m_nodes.emplace(id, newNode);                  // Add to nodes vector
+                m_nodes.at(currentNodeKey).m_children.push_back(id);
                 return;
             }
             childOfInterestKey = children[x2]; // Assign the current child node as the next node to check
@@ -464,13 +468,13 @@ void SuffixTree::addSuffix(const string &suf)
             {
                 // auto n3 = n2; // Assign a copy of the current child node
                 // n2 = nodes.size();
+                int id = (*m_idFactory).createId();
                 Node newNode{sub2.substr(0, j), {childOfInterestKey}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
-                m_nodes.emplace(m_id, newNode);
+                m_nodes.emplace(id, newNode);
                 m_nodes.at(childOfInterestKey).m_sub = sub2.substr(j); // We dont change the unique id, so the leaf is carried over while the substring changes inplace, good stuff
-                m_nodes.at(childOfInterestKey).m_parent = m_id;
-                m_nodes.at(currentNodeKey).m_children[x2] = m_id;
-                currentNodeKey = m_id;
-                m_id++;
+                m_nodes.at(childOfInterestKey).m_parent = id;
+                m_nodes.at(currentNodeKey).m_children[x2] = id;
+                currentNodeKey = id;
                 didSplit = true;
                 break; // break and continue down the tree
             }
@@ -513,7 +517,7 @@ std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
     return gen;
 }
 
-SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation)
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation, IdFactory *idFactory)
 {
     std::string rootString;
     int finalNode = prefixLocation.back();
@@ -530,7 +534,7 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> pref
 
     tree.getAllChildren(finalNode, newNodes);
     tree.deleteNode(newNodes);
-    return new SuffixTree(newNodes, str.length(), finalNode);
+    return new SuffixTree(newNodes, str.length(), finalNode, idFactory);
 }
 
 // int main()

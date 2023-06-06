@@ -6,7 +6,7 @@
 #include <iostream>
 #include <filesystem>
 
-void constructTrees(const string &dir) {
+void constructTrees(const string &dir, IdFactory *idFactory) {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees")) {
     std::filesystem::create_directory("temp_trees");
@@ -20,14 +20,13 @@ void constructTrees(const string &dir) {
     partition = readSequence(entry.path().string());
     
     std::string partitionName = entry.path().filename().string();
-    SuffixTree tree;
-    tree.build(partition);
+    SuffixTree tree{partition, idFactory};
     tree.serialize("./temp_trees/partition_trees/" + partitionName);
     std::cout << partitionName << '\n';
   }
 }
 
-void splitTrees(const std::vector<std::string> &prefixes) {
+void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) {
   std::ifstream ifs;
   vector<int> location;
   for (auto pre: prefixes) {
@@ -41,9 +40,10 @@ void splitTrees(const std::vector<std::string> &prefixes) {
       SuffixTree tree{ifs};
       for (auto pre: prefixes) {
         vector<int> location = tree.queryPrefix(pre);
+        (*idFactory).getId();
         if (!(location.empty()))
         {
-            SuffixTree newTree = *(splitTree(tree, pre, location));
+            SuffixTree newTree = *(splitTree(tree, pre, location, idFactory));
             newTree.serialize("./temp_trees/" + pre + '/' + entry.path().filename().string());
         }
         // need prefix location here.
@@ -60,9 +60,11 @@ int main() {
     std::vector<std::string> prefixes = pc.getPrefixes();
     std::cout << prefixes.size() << '\n';
     
+    IdFactory idFactory;
+    IdFactory* facPointer = &idFactory;
     partitionFile(fileName, static_cast<size_t>(t));
-    constructTrees("temp_prfx");
-    splitTrees(prefixes);
+    constructTrees("temp_prfx", facPointer);
+    splitTrees(prefixes, facPointer);
     clearDir("temp_trees/partition_trees");
      // clearDir("temp_prfx");
   

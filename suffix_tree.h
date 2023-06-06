@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <fstream>
 #include "node.h"
+#include "utils.h"
 
 class SuffixTree
 {
@@ -17,11 +18,13 @@ public:
 
     SuffixTree();
 
-    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId);
+    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId, IdFactory *idFactory);
+
+    SuffixTree(const std::string &str, IdFactory *idFactory, const std::string &prefix = "");
 
     SuffixTree(std::ifstream &archive);
 
-    void build(const std::string &str, const std::string &prefix = "");
+    // void build(const std::string &str, const std::string &prefix = "");
 
     void makeExplicit(const std::string &str);
 
@@ -50,7 +53,7 @@ public:
     void serialize(const std::string &fileName);
 
 private:
-    int m_id{0};
+    IdFactory *m_idFactory;
     void addSuffix(const std::string &suf);
 
     std::string serializeLeaves();
@@ -62,6 +65,6 @@ private:
     std::unordered_map<int, Node> deserializeNodes(std::string &line);
 };
 
-SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation);
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation, IdFactory *idFactory);
 
 #endif
