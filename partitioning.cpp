@@ -2,77 +2,53 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <filesystem>
+#include "partitioning.h"
 
 using namespace std;
 
-class fileOp
-{
-public:
-  int m_fileId{0};
-  fstream m_filestream;
-  string m_fileName = "";
-  streampos m_position{0};
-
-  fileOp(int fileId, int position) : m_fileId(fileId), m_position(position)
+PartitionUtility::PartitionUtility(int partitions) : m_partitions(partitions)
   {
-    openFileStream();
   }
 
-  char readCharacter()
-  {
-    char c;
-    m_filestream.seekg(m_position); // If we want to start from a position in the file
-    m_filestream.get(c);
-    if (m_filestream.eof())
+  void PartitionUtility::setFileName(int fileId) {
+    m_fileName = "./temp_prfx/prfx_" + to_string(fileId) + ".txt";
+  }
+
+  std::string PartitionUtility::getNextPartitionString() {
+    setFileName(m_fileId);
+    ifstream ifs;
+    string line;
+    string seq;
+    ifs.open(m_fileName);
+    while (getline(ifs, line))
     {
-      m_position = 0;
-      releaseFileStream();
-      nextFile();
-      openFileStream();
-      m_filestream.get(c);
+        if (!line.starts_with('>')) {
+            seq += line;
+        }
+        
     }
-    m_position = m_filestream.tellg(); // Update the current position
+    ifs.close();
+
+    setupNextFile();
+    return seq;
+  }
+
+  char PartitionUtility::getAdditionalCharacter() {
+    char c;
+    m_filestream.get(c);
     return c;
   }
 
-private:
-  void openFileStream()
-  {
-    m_fileName = "prfx_" + to_string(m_fileId) + ".txt";
-    m_filestream.open(m_fileName);
-    if (!m_filestream)
-    {
-      cerr << "Failed to open input file." << endl;
+  // open the next file for character-by-character reading,
+  // and for getNextPartitionString.
+  void PartitionUtility::setupNextFile() {
+    m_filestream.close();
+    m_fileId++;
+    if (m_fileId < m_partitions) {
+      setFileName(m_fileId);
+      m_filestream.open(m_fileName);
+    } else {
+      m_finalPartition = true;
     }
   }
-
-  void releaseFileStream()
-  {
-    m_filestream.close();
-  }
-
-  void nextFile()
-  {
-    m_fileId++;
-    m_fileName = "prfx_" + to_string(m_fileId) + ".txt";
-  }
-};
-
-// // Testing
-// int main()
-// {
-//   fileOp myFileOp{0, 0};
-//   char testChar;
-//   int t = 0;
-//   while (true)
-//   {
-//     testChar = myFileOp.readCharacter();
-//     cout << testChar << "\n";
-//     t++;
-//     if (t == 50)
-//     {
-//       break;
-//     }
-//   }
-//   return 0;
-// }

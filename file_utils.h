@@ -11,5 +11,6 @@ string readSequence(string filePath);
 void removeFiles(const string &mode = "prefix");
 void partitionFile(string &inputFileName, const size_t t);
 void clearDir(const string &dir);
+int partitionSequence(std::string &inputFileName, const size_t t);
 
 #endif

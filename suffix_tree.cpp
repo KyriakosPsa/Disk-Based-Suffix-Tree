@@ -80,7 +80,7 @@ void SuffixTree::makeExplicit(const string &str)
     Node newNode{str, {}, 0};
     int id = (*m_idFactory).createId();
     tba.emplace(id, newNode);
-    m_nodes.at(0).m_children.push_back(id);
+    m_nodes.at(m_rootId).m_children.push_back(id);
 
     for (auto &element : m_nodes)
     {
@@ -104,7 +104,7 @@ void SuffixTree::makeExplicit(const string &str)
 // Check if a prefix is unique, meaning it is not already represented within the tree structure
 bool SuffixTree::isUnique(const string &str)
 {
-    int currentNode = 0;
+    int currentNode = m_rootId;
     int flag = currentNode;
     std::string remaining = str;
     while (true)
@@ -161,7 +161,7 @@ void SuffixTree::makeLeaves()
         if (element.second.m_children.empty()) // if a node has no children -> leaf node
         {
             size_t parentlen{0}; // Initialize the length of the path from the leaf to root
-            int parentNode{0};
+            int parentNode{m_rootId};
             parentlen += element.second.m_sub.length(); // Add the length of the leaf node substring
             parentNode = element.second.m_parent;       // Pass the first parent
             while (parentNode >= 0)                     // Iterate over all available parents
@@ -515,6 +515,10 @@ std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
         gen+= '.';
     }
     return gen;
+}
+
+int SuffixTree::countLeaves() {
+    return m_leaves.size();
 }
 
 SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation, IdFactory *idFactory)

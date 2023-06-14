@@ -1,12 +1,12 @@
 #include "file_utils.h"
 #include "prefix_count.h"
 #include "suffix_tree.h"
-// #include "partitioning.h"
+#include "partitioning.h"
 #include <string>
 #include <iostream>
 #include <filesystem>
 
-void constructTrees(const string &dir, IdFactory *idFactory) {
+void constructTrees(const string &dir, IdFactory *idFactory, int partitions) {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees")) {
     std::filesystem::create_directory("temp_trees");
@@ -15,12 +15,30 @@ void constructTrees(const string &dir, IdFactory *idFactory) {
   if (!std::filesystem::is_directory("./temp_trees/partition_trees") || !std::filesystem::exists("./temp_trees/partition_trees")) {
     std::filesystem::create_directory("./temp_trees/partition_trees");
   }
-  
+
+  PartitionUtility pfr{partitions};
   for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-    partition = readSequence(entry.path().string());
+    partition = pfr.getNextPartitionString();
     
     std::string partitionName = entry.path().filename().string();
     SuffixTree tree{partition, idFactory};
+  
+    // bool implicit{true};
+    // std::string candidatePrefix;
+    // // if this is the final partition, tree is already implicit
+    // if (pfr.m_finalPartition) {
+    //   implicit = false;
+    // }
+    // while (implicit) {
+    //   candidatePrefix += pfr.getAdditionalCharacter();
+    //   bool unique = tree.isUnique(candidatePrefix);
+    //   if (unique) {
+    //     std::cout << candidatePrefix << '\n';
+    //     tree.makeExplicit(candidatePrefix);
+    //     implicit = false;
+    //   }
+    // }
+
     tree.serialize("./temp_trees/partition_trees/" + partitionName);
     std::cout << partitionName << '\n';
   }
@@ -52,41 +70,20 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
 }
 
 int main() {
-    std::string fileName{"./input/NC_045512v2.fa"};
-    std::string sequence = readSequence(fileName);
-    int t = sequence.length()/30;
-
-    PrefixCounter pc{t, sequence};  
+    std::string sequence = readSequence("./input/small.fasta");
+    size_t t = sequence.length()/5;
+    std::cout << t << '\n';
+    PrefixCounter pc{static_cast<int>(t), sequence};  
     std::vector<std::string> prefixes = pc.getPrefixes();
     std::cout << prefixes.size() << '\n';
     
     IdFactory idFactory;
     IdFactory* facPointer = &idFactory;
-    partitionFile(fileName, static_cast<size_t>(t));
-    constructTrees("temp_prfx", facPointer);
+    int partitions = partitionSequence(sequence, t);
+    constructTrees("temp_prfx", facPointer, partitions);
     splitTrees(prefixes, facPointer);
-    clearDir("temp_trees/partition_trees");
-     // clearDir("temp_prfx");
-  
-    // ifstream ifs("./temp_trees/AAA/prfx_0.txt");
-    // SuffixTree tree2(ifs);
-    // ofstream ofs{"./output/visualization.txt"};
-    // tree2.visualizeNoLeaves(ofs);
-
-    // string file{"input\\NC_045512v2.fa"};
-    // sequenceFile.open(file);
-
-    // unsigned int fileSize = getFileSize(file);
-    // string sequence;
-    // sequence.reserve(fileSize);
-    // cout << fileSize << "\n";
-    // readIntoString(sequence, sequenceFile);
-    // size_t sequenceLength = sequence.length();
-    // std::cout << round(fileSize/3000) << '\n';
-    // runSinglePass(sequence, 50, sequenceLength);
-    // runMultiPass(sequence, 50, sequenceLength);
-    // sequenceFile.close();
-    // return 0;
+    // clearDir("temp_trees");
+    // clearDir("temp_prfx");
 }
 
 // Make list of variable length prefixes
@@ -95,5 +92,3 @@ int main() {
 // Make explicit by adding a unique prefix from the start of the next file
 // Split trees by prefixes, taking only paths that begin with a given prefix
 // Save prefix trees to disk
-
-// Make Node ID global

@@ -8,14 +8,8 @@ PrefixCounter::PrefixCounter(int t, std::string sequence)
     {
     
     }
-int m_t{};
-std::string m_sequence{};
-size_t m_sequenceLength{};
-std::vector<std::string> m_extendVector{ "" };
-std::vector<std::string> m_prefixVector;
-char m_alphabet[4]{ 'A', 'G', 'C', 'T' };
 
-int  PrefixCounter::evalInequality(size_t currLength, size_t prevLength)
+int PrefixCounter::evalInequality(size_t currLength, size_t prevLength)
 {
     size_t sum{0};
     for (size_t i = 1; i <= (currLength - prevLength); i++)

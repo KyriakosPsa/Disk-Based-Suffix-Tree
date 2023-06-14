@@ -53,7 +53,6 @@ string readSequence(string filePath) {
     string line;
     string seq;
     ifstream ifs{filePath};
-    getline(ifs, line);
     while (getline(ifs, line))
     {
         if (!line.starts_with('>')) {
@@ -99,9 +98,12 @@ void removeFiles(const string &mode)
 }
 
 void clearDir(const string &dir) {
-  for (const auto& entry : std::filesystem::directory_iterator(dir)) 
+  if (std::filesystem::is_directory(dir) || std::filesystem::exists(dir)) {
+    for (const auto& entry : std::filesystem::directory_iterator(dir)) 
         std::filesystem::remove_all(entry.path());
   std::filesystem::remove(dir);
+  }
+  
 }
 
 void partitionFile(string &inputFileName, const size_t t)
@@ -145,4 +147,28 @@ void partitionFile(string &inputFileName, const size_t t)
       break;
     }
   }
+}
+
+int partitionSequence(std::string &inputSequence, const size_t t)
+// Open input file and exhaustively partition it in t files : prfx_1.txt, to prfx_2.txt etc.
+{
+  int fileCount{0};
+  if (!std::filesystem::is_directory("temp_prfx") || !std::filesystem::exists("temp_prfx")) {
+    std::filesystem::create_directory("temp_prfx");
+  }
+  for (size_t i = 0; i < inputSequence.size(); i += t)
+  {
+    std:: string sub = inputSequence.substr(i, t);
+    const string tmpfilename = "./temp_prfx/prfx_" + to_string(fileCount) + ".txt";
+    ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
+    if (!outputFile)
+    {
+      cerr << "Failed to open output file.";
+      return -1;
+    }
+    outputFile << sub + '$'; // Write characters to output file
+    outputFile.close();
+    fileCount += 1;
+  }
+  return fileCount;
 }

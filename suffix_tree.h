@@ -52,6 +52,8 @@ public:
 
     void serialize(const std::string &fileName);
 
+    int countLeaves();
+
 private:
     IdFactory *m_idFactory;
     void addSuffix(const std::string &suf);
