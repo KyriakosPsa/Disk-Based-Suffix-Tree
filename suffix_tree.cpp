@@ -70,89 +70,89 @@ SuffixTree::SuffixTree(const string &str, IdFactory *idFactory, const string &pr
     }
 }
 
-// Add a child with m_sub=str to all tree nodes that have only one child
-void SuffixTree::makeExplicit(const string &str)
-{
-    // add children to a temp map so that the iterator is not invalidated
-    std::unordered_map<int, Node> tba;
+// // Add a child with m_sub=str to all tree nodes that have only one child
+// void SuffixTree::makeExplicit(const string &str)
+// {
+//     // add children to a temp map so that the iterator is not invalidated
+//     std::unordered_map<int, Node> tba;
 
-    // do the root node
-    Node newNode{str, {}, 0};
-    int id = (*m_idFactory).createId();
-    tba.emplace(id, newNode);
-    m_nodes.at(m_rootId).m_children.push_back(id);
+//     // do the root node
+//     Node newNode{str, {}, 0};
+//     int id = (*m_idFactory).createId();
+//     tba.emplace(id, newNode);
+//     m_nodes.at(m_rootId).m_children.push_back(id);
 
-    for (auto &element : m_nodes)
-    {
-        // if node has only one child because it was split due to ending but no ending character was added
-        if (element.second.m_children.size() == 1)
-        {
-            Node newNode{str, {}, element.first};
-            int id = (*m_idFactory).createId();
-            tba.emplace(id, newNode);
-            element.second.m_children.push_back(id);
-        }
-    }
+//     for (auto &element : m_nodes)
+//     {
+//         // if node has only one child because it was split due to ending but no ending character was added
+//         if (element.second.m_children.size() == 1)
+//         {
+//             Node newNode{str, {}, element.first};
+//             int id = (*m_idFactory).createId();
+//             tba.emplace(id, newNode);
+//             element.second.m_children.push_back(id);
+//         }
+//     }
 
-    // dump children into original map
-    for (auto &element : tba)
-    {
-        m_nodes.emplace(element.first, element.second);
-    }
-}
+//     // dump children into original map
+//     for (auto &element : tba)
+//     {
+//         m_nodes.emplace(element.first, element.second);
+//     }
+// }
 
-// Check if a prefix is unique, meaning it is not already represented within the tree structure
-bool SuffixTree::isUnique(const string &str)
-{
-    int currentNode = m_rootId;
-    int flag = currentNode;
-    std::string remaining = str;
-    while (true)
-    {
-        for (auto child : m_nodes.at(currentNode).m_children)
-        {
-            std::string nodeStr = m_nodes.at(child).m_sub;
-            size_t searchResult;
-            if (nodeStr.length() > remaining.length())
-            {
-                searchResult = nodeStr.rfind(remaining, 0);
-                if (searchResult == 0)
-                {
-                    remaining = "";
-                }
-            }
-            else
-            {
-                searchResult = remaining.rfind(nodeStr, 0);
-                if (searchResult == 0)
-                {
-                    remaining = remaining.substr(nodeStr.length());
-                }
-            }
+// // Check if a prefix is unique, meaning it is not already represented within the tree structure
+// bool SuffixTree::isUnique(const string &str)
+// {
+//     int currentNode = m_rootId;
+//     int flag = currentNode;
+//     std::string remaining = str;
+//     while (true)
+//     {
+//         for (auto child : m_nodes.at(currentNode).m_children)
+//         {
+//             std::string nodeStr = m_nodes.at(child).m_sub;
+//             size_t searchResult;
+//             if (nodeStr.length() > remaining.length())
+//             {
+//                 searchResult = nodeStr.rfind(remaining, 0);
+//                 if (searchResult == 0)
+//                 {
+//                     remaining = "";
+//                 }
+//             }
+//             else
+//             {
+//                 searchResult = remaining.rfind(nodeStr, 0);
+//                 if (searchResult == 0)
+//                 {
+//                     remaining = remaining.substr(nodeStr.length());
+//                 }
+//             }
 
-            if (searchResult == 0)
-            {
-                if (remaining.length() == 0)
-                {
-                    return false;
-                }
-                else
-                {
-                    currentNode = child;
-                    break;
-                }
-            }
-        }
-        if (flag == currentNode)
-        {
-            return true;
-        }
-        else
-        {
-            flag = currentNode;
-        }
-    }
-}
+//             if (searchResult == 0)
+//             {
+//                 if (remaining.length() == 0)
+//                 {
+//                     return false;
+//                 }
+//                 else
+//                 {
+//                     currentNode = child;
+//                     break;
+//                 }
+//             }
+//         }
+//         if (flag == currentNode)
+//         {
+//             return true;
+//         }
+//         else
+//         {
+//             flag = currentNode;
+//         }
+//     }
+// }
 
 void SuffixTree::makeLeaves()
 {

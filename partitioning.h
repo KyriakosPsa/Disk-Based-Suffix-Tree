@@ -22,7 +22,7 @@ class PartitionUtility {
     public:
         PartitionUtility(int partitions);
         std::string getNextPartitionString();
-        char getAdditionalCharacter();
+        // char getAdditionalCharacter();
         bool m_finalPartition{false};
 };
 

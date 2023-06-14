@@ -34,11 +34,11 @@ PartitionUtility::PartitionUtility(int partitions) : m_partitions(partitions)
     return seq;
   }
 
-  char PartitionUtility::getAdditionalCharacter() {
-    char c;
-    m_filestream.get(c);
-    return c;
-  }
+  // char PartitionUtility::getAdditionalCharacter() {
+  //   char c;
+  //   m_filestream.get(c);
+  //   return c;
+  // }
 
   // open the next file for character-by-character reading,
   // and for getNextPartitionString.

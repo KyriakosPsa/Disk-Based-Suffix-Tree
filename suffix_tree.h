@@ -24,11 +24,9 @@ public:
 
     SuffixTree(std::ifstream &archive);
 
-    // void build(const std::string &str, const std::string &prefix = "");
+    // void makeExplicit(const std::string &str);
 
-    void makeExplicit(const std::string &str);
-
-    bool isUnique(const std::string &str);
+    // bool isUnique(const std::string &str);
 
     void makeLeaves();
 
