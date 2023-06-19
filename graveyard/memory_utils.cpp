@@ -31,7 +31,7 @@ long long int get_total_ram_bytes()
 #endif
 }
 
-long long int calculate_t(long long int &sequence_size,
+long long int calculate_t(size_t &sequence_size,
                           long long int &total_ram,
                           long long int limit_memory_bytes,
                           bool limit = false)

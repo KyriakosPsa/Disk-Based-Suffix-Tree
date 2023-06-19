@@ -1,8 +1,6 @@
 #ifndef PREFIX_COUNT
 #define PREFIX_COUNT
 
-using namespace std;
-
 #include <vector>
 #include <string>
 

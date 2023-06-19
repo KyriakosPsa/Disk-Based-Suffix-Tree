@@ -9,8 +9,6 @@
 #include "suffix_tree.h"
 #include "utils.h"
 
-using namespace std;
-
 std::vector<std::string> splitByDelimiter(const std::string &str, char delimiter) {
     std::vector<std::string> segments;
     std::string segment;
@@ -28,6 +26,7 @@ SuffixTree::SuffixTree()
 
 SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId, IdFactory *idFactory)
 {
+    // TODO fix unused and wrong properties length, idFactory
     m_length = length;
     m_rootId = rootId;
     for (auto node : nodes)
@@ -37,23 +36,23 @@ SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, i
     m_idFactory = idFactory;
 }
 
-SuffixTree::SuffixTree(ifstream &archive)
+SuffixTree::SuffixTree(std::ifstream &archive)
 {
     std::string temp;
-    getline(archive, temp);
+    std::getline(archive, temp);
     m_leaves = deserializeLeaves(temp);
-    getline(archive, temp);
+    std::getline(archive, temp);
     m_nodes = deserializeNodes(temp);
-    getline(archive, temp);
+    std::getline(archive, temp);
     m_length = stringToSize(temp);
-    getline(archive, temp);
+    std::getline(archive, temp);
     m_rootId = stoi(temp);
 
     archive.close();
 }
 
 // Construct the suffix tree from a specified string
-SuffixTree::SuffixTree(const string &str, IdFactory *idFactory, const string &prefix)
+SuffixTree::SuffixTree(const std::string &str, IdFactory *idFactory, const std::string &prefix)
 {
     m_idFactory = idFactory;
     m_length = str.length();
@@ -179,20 +178,20 @@ void SuffixTree::visualize()
 {
     if (m_nodes.size() == 0)
     {
-        cout << "<empty>\n";
+        std::cout << "<empty>\n";
         return;
     }
 
-    function<void(int, const string &)> f;
-    f = [&](int id, const string &pre)
+    std::function<void(int, const std::string &)> f;
+    f = [&](int id, const std::string &pre)
     {
         auto children = m_nodes.at(id).m_children;
         if (children.size() == 0)
         {
-            cout << "- " << m_nodes.at(id).m_sub << " ~ " << m_leaves.at(id) << '\n';
+            std::cout << "- " << m_nodes.at(id).m_sub << " ~ " << m_leaves.at(id) << '\n';
             return;
         }
-        cout << "+ " << m_nodes.at(id).m_sub << '\n';
+        std::cout << "+ " << m_nodes.at(id).m_sub << '\n';
 
         auto it = begin(children);
         if (it != end(children))
@@ -200,12 +199,12 @@ void SuffixTree::visualize()
             {
                 if (next(it) == end(children))
                     break;
-                cout << pre << "+-";
+                std::cout << pre << "+-";
                 f(*it, pre + "| ");
                 it = next(it);
             } while (true);
 
-        cout << pre << "+-";
+        std::cout << pre << "+-";
         f(children[children.size() - 1], pre + "  ");
     };
 
@@ -216,20 +215,20 @@ void SuffixTree::visualizeNoLeaves()
 {
     if (m_nodes.size() == 0)
     {
-        cout << "<empty>\n";
+        std::cout << "<empty>\n";
         return;
     }
 
-    function<void(int, const string &)> f;
-    f = [&](int id, const string &pre)
+    std::function<void(int, const std::string &)> f;
+    f = [&](int id, const std::string &pre)
     {
         auto children = m_nodes.at(id).m_children;
         if (children.size() == 0)
         {
-            cout << "- " << m_nodes.at(id).m_sub << '\n';
+            std::cout << "- " << m_nodes.at(id).m_sub << '\n';
             return;
         }
-        cout << "+ " << m_nodes.at(id).m_sub << '\n';
+        std::cout << "+ " << m_nodes.at(id).m_sub << '\n';
 
         auto it = begin(children);
         if (it != end(children))
@@ -237,19 +236,19 @@ void SuffixTree::visualizeNoLeaves()
             {
                 if (next(it) == end(children))
                     break;
-                cout << pre << "+-";
+                std::cout << pre << "+-";
                 f(*it, pre + "| ");
                 it = next(it);
             } while (true);
 
-        cout << pre << "+-";
+        std::cout << pre << "+-";
         f(children[children.size() - 1], pre + "  ");
     };
 
     f(m_rootId, "");
 }
 
-void SuffixTree::visualizeNoLeaves(ofstream &outputFile)
+void SuffixTree::visualizeNoLeaves(std::ofstream &outputFile)
 {
     if (m_nodes.size() == 0)
     {
@@ -257,8 +256,8 @@ void SuffixTree::visualizeNoLeaves(ofstream &outputFile)
         return;
     }
 
-    function<void(int, const string &)> f;
-    f = [&](int id, const string &pre)
+    std::function<void(int, const std::string &)> f;
+    f = [&](int id, const std::string &pre)
     {
         auto children = m_nodes.at(id).m_children;
         if (children.size() == 0)
@@ -295,12 +294,12 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
     }
 }
 
-vector<int> SuffixTree::queryPrefix(const string &str)
+std::vector<int> SuffixTree::queryPrefix(const std::string &str)
 {
     int currentNode = m_rootId;
     int flag = currentNode;
     std::string remaining = str;
-    vector<int> involvedNodes;
+    std::vector<int> involvedNodes;
     while (true)
     {
         for (auto child : m_nodes.at(currentNode).m_children)
@@ -310,6 +309,10 @@ vector<int> SuffixTree::queryPrefix(const string &str)
             if (nodeStr.length() > remaining.length())
             {
                 searchResult = nodeStr.rfind(remaining, 0);
+                if (!nodeStr.starts_with(remaining) && searchResult == 0) {
+                    std::cout << nodeStr << '\n';
+                    std::cout << remaining << '\n';
+                }
                 if (searchResult == 0)
                 {
                     remaining = "";
@@ -361,7 +364,7 @@ void SuffixTree::removeAsChild(int node)
     int parent = m_nodes.at(node).m_parent;
     if (m_nodes.contains(parent))
     {
-        vector<int> *children = &m_nodes.at(parent).m_children;
+        std::vector<int> *children = &m_nodes.at(parent).m_children;
         std::vector<int>::iterator position = std::find((*children).begin(), (*children).end(), node);
         if (position != (*children).end()) // == myVector.end() means the element was not found
             (*children).erase(position);
@@ -377,7 +380,7 @@ void SuffixTree::deleteNode(std::vector<std::pair<int, Node>> nodes)
 }
 
 size_t SuffixTree::stringToSize(std::string &str) {
-    stringstream stream(str);
+    std::stringstream stream(str);
     size_t output;
     stream >> output;
 
@@ -396,7 +399,7 @@ std::unordered_map<int, Node> SuffixTree::deserializeNodes(std::string &line) {
 
 void SuffixTree::serialize(const std::string &fileName)
 {
-    ofstream archive{fileName};
+    std::ofstream archive{fileName};
     archive << serializeLeaves() << '\n';
     archive << serializeNodes() << '\n';
     archive << m_length << '\n';
@@ -404,7 +407,7 @@ void SuffixTree::serialize(const std::string &fileName)
     archive.close();
 }
 
-void SuffixTree::addSuffix(const string &suf)
+void SuffixTree::addSuffix(const std::string &suf)
 /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
 {
     int currentNodeKey = m_rootId; // Current Node
@@ -489,9 +492,9 @@ void SuffixTree::addSuffix(const string &suf)
 std::string SuffixTree::serializeLeaves() {
     std::string gen{""};
     for (auto i: m_leaves) {
-        gen+= to_string(i.first);
+        gen+= std::to_string(i.first);
         gen+= '.';
-        gen+= to_string(i.second);
+        gen+= std::to_string(i.second);
         gen+= '.';
     }
     return gen;
@@ -509,7 +512,7 @@ std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
     std::string SuffixTree::serializeNodes() {
     std::string gen{""};
     for (auto i: m_nodes) {
-        gen+= to_string(i.first);
+        gen+= std::to_string(i.first);
         gen+= '.';
         gen+= i.second.serialize();
         gen+= '.';
@@ -521,16 +524,29 @@ int SuffixTree::countLeaves() {
     return m_leaves.size();
 }
 
-SuffixTree *splitTree(SuffixTree &tree, const std::string &str, vector<int> prefixLocation, IdFactory *idFactory)
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation, IdFactory *idFactory)
 {
     std::string rootString;
     int finalNode = prefixLocation.back();
+    std::string pathString;
     for (int node : prefixLocation)
     {
-        rootString += tree.m_nodes.at(node).m_sub;
+        pathString += tree.m_nodes.at(node).m_sub;
+    }
+
+    if (pathString.length() > str.length()) {
+        if (pathString.starts_with(str)) {
+            rootString = pathString;
+        } else {
+            rootString = str;
+        }
+    } else {
+        rootString = str;
     }
 
     // add new root node and remove it as child from parent in old tree
+    std::cout << rootString << '\n';
+    std:: cout << str << '\n';
     Node newRoot{rootString, tree.m_nodes.at(finalNode).m_children, -1};
     std::vector<std::pair<int, Node>> newNodes;
     newNodes.push_back(std::make_pair(finalNode, newRoot));

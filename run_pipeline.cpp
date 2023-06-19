@@ -2,11 +2,13 @@
 #include "prefix_count.h"
 #include "suffix_tree.h"
 #include "partitioning.h"
+#include "utils.h"
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <Windows.h>
 
-void constructTrees(const string &dir, IdFactory *idFactory, int partitions) {
+void constructTrees(const std::string &dir, IdFactory *idFactory, int partitions) {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees")) {
     std::filesystem::create_directory("temp_trees");
@@ -19,8 +21,6 @@ void constructTrees(const string &dir, IdFactory *idFactory, int partitions) {
   PartitionUtility pfr{partitions};
   for (const auto& entry : std::filesystem::directory_iterator(dir)) {
     partition = pfr.getNextPartitionString();
-    
-    std::string partitionName = entry.path().filename().string();
     SuffixTree tree{partition, idFactory};
   
     // bool implicit{true};
@@ -38,7 +38,7 @@ void constructTrees(const string &dir, IdFactory *idFactory, int partitions) {
     //     implicit = false;
     //   }
     // }
-
+    std::string partitionName = entry.path().filename().string();
     tree.serialize("./temp_trees/partition_trees/" + partitionName);
     std::cout << partitionName << '\n';
   }
@@ -46,7 +46,7 @@ void constructTrees(const string &dir, IdFactory *idFactory, int partitions) {
 
 void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) {
   std::ifstream ifs;
-  vector<int> location;
+  std::vector<int> location;
   for (auto pre: prefixes) {
     if (!std::filesystem::is_directory("./temp_trees/" + pre) || !std::filesystem::exists("./temp_trees/" + pre)) {
       std::filesystem::create_directory("./temp_trees/" + pre);
@@ -57,8 +57,7 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
       ifs.open(entry.path());
       SuffixTree tree{ifs};
       for (auto pre: prefixes) {
-        vector<int> location = tree.queryPrefix(pre);
-        (*idFactory).getId();
+        std::vector<int> location = tree.queryPrefix(pre);
         if (!(location.empty()))
         {
             SuffixTree newTree = *(splitTree(tree, pre, location, idFactory));
@@ -70,20 +69,27 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
 }
 
 int main() {
-    std::string sequence = readSequence("./input/small.fasta");
-    size_t t = sequence.length()/5;
-    std::cout << t << '\n';
-    PrefixCounter pc{static_cast<int>(t), sequence};  
-    std::vector<std::string> prefixes = pc.getPrefixes();
-    std::cout << prefixes.size() << '\n';
-    
-    IdFactory idFactory;
-    IdFactory* facPointer = &idFactory;
-    int partitions = partitionSequence(sequence, t);
-    constructTrees("temp_prfx", facPointer, partitions);
-    splitTrees(prefixes, facPointer);
-    // clearDir("temp_trees");
-    // clearDir("temp_prfx");
+  std::string sequence = readSequence("input\\NC_045512v2.fa");
+  clearDir("temp_trees");
+  clearDir("temp_prfx");
+  // // Memory limits experimental section
+  // // size_t minWorkingSetSize = 1024 * 1024 * 0.4;
+  // // size_t maxWorkingSetSize = 1024 * 1024 * 0.4;
+  // // MemoryUtil mu{};
+  // // mu.limitMemory(minWorkingSetSize, maxWorkingSetSize);
+  // // size_t t = mu.calculate_t(sequence.length(), maxWorkingSetSize);
+  
+  size_t t = sequence.length()/30;
+  std::cout << t << '\n';
+  PrefixCounter pc{static_cast<int>(t), sequence};  
+  std::vector<std::string> prefixes = pc.getPrefixes();
+  std::cout << prefixes.size() << '\n';
+  
+  IdFactory idFactory;
+  IdFactory* facPointer = &idFactory;
+  int partitions = partitionSequence(sequence, t);
+  constructTrees("temp_prfx", facPointer, partitions);
+  splitTrees(prefixes, facPointer);
 }
 
 // Make list of variable length prefixes

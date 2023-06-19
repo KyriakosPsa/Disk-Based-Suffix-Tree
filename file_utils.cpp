@@ -7,8 +7,6 @@
 #include "file_utils.h"
 #include <filesystem>
 
-using namespace std;
-
 // long long int preprocess_sequence(string filename)
 // /**
 //  * Removes the endline characters, counts the total string lenght
@@ -49,10 +47,10 @@ using namespace std;
 //   }
 // }
 
-string readSequence(string filePath) {
-    string line;
-    string seq;
-    ifstream ifs{filePath};
+std::string readSequence(std::string filePath) {
+    std::string line;
+    std::string seq;
+    std::ifstream ifs{filePath};
     while (getline(ifs, line))
     {
         if (!line.starts_with('>')) {
@@ -65,18 +63,18 @@ string readSequence(string filePath) {
     return seq;
 }
 
-void removeFiles(const string &mode)
+void removeFiles(const std::string &mode)
 // delete files based on mode, either all the prefix files or suffix tree files
 {
   int status{0};        // remove returns 0 if a file is removed
   int filecount{0};     // the id tag used in our naming shceme
   if (mode == "prefix") // prefix mode, delete prefix files
   {
-    const string fileprefix = "prfx_";
-    const string filesuffix = ".txt";
+    const std::string fileprefix = "prfx_";
+    const std::string filesuffix = ".txt";
     while (status == 0)
     {
-      string filename = fileprefix + to_string(filecount) + filesuffix;
+      std::string filename = fileprefix + std::to_string(filecount) + filesuffix;
       status = remove(filename.c_str());
       filecount++;
     }
@@ -92,12 +90,12 @@ void removeFiles(const string &mode)
   }
   else
   {
-    cerr << "Invalid mode";
+    std::cerr << "Invalid mode";
     return;
   }
 }
 
-void clearDir(const string &dir) {
+void clearDir(const std::string &dir) {
   if (std::filesystem::is_directory(dir) || std::filesystem::exists(dir)) {
     for (const auto& entry : std::filesystem::directory_iterator(dir)) 
         std::filesystem::remove_all(entry.path());
@@ -106,17 +104,17 @@ void clearDir(const string &dir) {
   
 }
 
-void partitionFile(string &inputFileName, const size_t t)
+void partitionFile(std::string &inputFileName, const size_t t)
 // Open input file and exhaustively partition it in t files : prfx_1.txt, to prfx_2.txt etc.
 {
   int fileposition{0};               // The position of the pointer in the file
-  ifstream inputFile(inputFileName); // Open input file stream
+  std::ifstream inputFile(inputFileName); // Open input file stream
   if (!inputFile)
   {
-    cerr << "Failed to open input file.";
+    std::cerr << "Failed to open input file.";
     return;
   }
-  vector<char> buffer(t); // Define a region in memory to contain the t characters to read
+  std::vector<char> buffer(t); // Define a region in memory to contain the t characters to read
   int filecount = 0;
   if (!std::filesystem::is_directory("temp_prfx") || !std::filesystem::exists("temp_prfx")) {
     std::filesystem::create_directory("temp_prfx");
@@ -128,11 +126,11 @@ void partitionFile(string &inputFileName, const size_t t)
     int bytesRead = inputFile.gcount();    // Get the number of characters read
     if (bytesRead > 0)
     {
-      const string tmpfilename = "./temp_prfx/prfx_" + to_string(filecount) + ".txt";
-      ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
+      const std::string tmpfilename = "./temp_prfx/prfx_" + std::to_string(filecount) + ".txt";
+      std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
       if (!outputFile)
       {
-        cerr << "Failed to open output file.";
+        std::cerr << "Failed to open output file.";
         return;
       }
       outputFile.write(buffer.data(), bytesRead); // Write characters to output file
@@ -159,11 +157,11 @@ int partitionSequence(std::string &inputSequence, const size_t t)
   for (size_t i = 0; i < inputSequence.size(); i += t)
   {
     std:: string sub = inputSequence.substr(i, t);
-    const string tmpfilename = "./temp_prfx/prfx_" + to_string(fileCount) + ".txt";
-    ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
+    const std::string tmpfilename = "./temp_prfx/prfx_" + std::to_string(fileCount) + ".txt";
+    std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
     if (!outputFile)
     {
-      cerr << "Failed to open output file.";
+      std::cerr << "Failed to open output file.";
       return -1;
     }
     outputFile << sub + '$'; // Write characters to output file

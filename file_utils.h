@@ -3,14 +3,11 @@
 
 #include <string>
 
-
-using namespace std;
-
 // long long int preprocess_sequence(string filename);
-string readSequence(string filePath);
-void removeFiles(const string &mode = "prefix");
-void partitionFile(string &inputFileName, const size_t t);
-void clearDir(const string &dir);
+std::string readSequence(std::string filePath);
+void removeFiles(const std::string &mode = "prefix");
+void partitionFile(std::string &inputFileName, const size_t t);
+void clearDir(const std::string &dir);
 int partitionSequence(std::string &inputFileName, const size_t t);
 
 #endif
