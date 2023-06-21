@@ -7,7 +7,7 @@
 #include <Windows.h>
 #else
 // If the system is linux, include the sysinfo.h library
-#include <sysinfo/sysinfo.h>
+#include <sys/sysinfo.h>
 #include <sys/resource.h>
 #endif
 
@@ -32,9 +32,9 @@ size_t MemoryUtil::get_total_ram_bytes()
 }
 
 size_t MemoryUtil::calculate_t(const size_t &sequence_size,
-                          const size_t &total_ram,
-                          size_t limit_memory_bytes,
-                          bool limit)
+                               const size_t &total_ram,
+                               size_t limit_memory_bytes,
+                               bool limit)
 /**
  * Computes t, a crucial threshold for the memory mamagement of the Algorithm
  *
@@ -61,24 +61,29 @@ size_t MemoryUtil::calculate_t(const size_t &sequence_size,
   }
 }
 
-int MemoryUtil::limitMemory(size_t min, size_t max) {
-  #ifdef _WIN32
-    if (!SetProcessWorkingSetSize(GetCurrentProcess(), min, max)) {
-        std::cout << "Failed to set the working set size." << std::endl;
-        return 1;
-    }
-    return 0;
-  #else
-    rlimit limit;
-    getrlimit(RLIMIT_AS, &limit); // Get the current virtual memory limit
-
-    std::cout << "Current virtual memory limit: " << limit.rlim_cur << std::endl;
-
-    // Set a new virtual memory limit
-    limit.rlim_cur = max; // 100 MB
-    setrlimit(RLIMIT_AS, &limit);
-
-    std::cout << "New virtual memory limit: " << limit.rlim_cur << std::endl;
-    return 0;
-  #endif
+#ifdef _WIN32
+int MemoryUtil::limitMemoryWindows(size_t min, size_t max)
+{
+  if (!SetProcessWorkingSetSize(GetCurrentProcess(), min, max))
+  {
+    std::cout << "Failed to set the working set size." << std::endl;
+    return 1;
+  }
+  return 0;
 }
+#else
+int MemoryUtil::limitMemoryLinux(size_t max)
+{
+  rlimit limit;
+  getrlimit(RLIMIT_AS, &limit); // Get the current virtual memory limit
+
+  std::cout << "Current virtual memory limit: " << limit.rlim_cur << std::endl;
+
+  // Set a new virtual memory limit
+  limit.rlim_cur = max; // 100 MB
+  setrlimit(RLIMIT_AS, &limit);
+
+  std::cout << "New virtual memory limit: " << limit.rlim_cur << std::endl;
+  return 0;
+}
+#endif
