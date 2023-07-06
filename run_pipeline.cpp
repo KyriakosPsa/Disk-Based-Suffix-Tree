@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "file_utils.h"
 #include "prefix_count.h"
 #include "suffix_tree.h"
@@ -40,7 +41,7 @@ void constructTrees(const std::string &dir, IdFactory *idFactory, int partitions
     // }
     std::string partitionName = entry.path().filename().string();
     tree.serialize("./temp_trees/partition_trees/" + partitionName);
-    std::cout << partitionName << '\n';
+    // std::cout << partitionName << '\n';
   }
 }
 
@@ -55,8 +56,8 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
 
   for (const auto& entry : std::filesystem::directory_iterator("./temp_trees/partition_trees/")) {
       ifs.open(entry.path());
-      SuffixTree tree{ifs};
-      for (auto pre: prefixes) {
+      SuffixTree tree{ifs, idFactory};
+      for (const auto& pre: prefixes) {
         std::vector<int> location = tree.queryPrefix(pre);
         if (!(location.empty()))
         {
@@ -66,6 +67,37 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
         // need prefix location here.
     }
     }
+}
+
+void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory) {
+  if (!std::filesystem::is_directory("./temp_trees/merged_trees") || !std::filesystem::exists("./temp_trees/merged_trees")) {
+      std::filesystem::create_directory("./temp_trees/merged_trees");
+    }
+  for (const auto& pre: prefixes) {
+    std::filesystem::directory_iterator iter{"./temp_trees/" + pre};
+    std::ifstream ifs;
+    auto dir = *(iter);
+    ifs.open(dir.path());
+    SuffixTree baseTree{ifs, idFactory};
+    baseTree.splitRoot(pre);
+    iter++;
+    ifs.close();
+    for (const auto& entry : iter) {
+      ifs.open(entry.path());
+      SuffixTree newTree{ifs, idFactory};
+      newTree.splitRoot(pre);
+      baseTree.merge(newTree);
+      // baseTree.visualizeNoLeaves();
+      // newTree.visualizeNoLeaves();
+    }
+    std::cout << "test" << '\n';
+    baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
+    std::ofstream save;
+    save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
+    baseTree.visualizeNoLeaves(save);
+    save.close();
+    // baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
+  }
 }
 
 int main() {
@@ -80,7 +112,7 @@ int main() {
   // // size_t t = mu.calculate_t(sequence.length(), maxWorkingSetSize);
   
   size_t t = sequence.length()/30;
-  std::cout << t << '\n';
+  // std::cout << t << '\n';
   PrefixCounter pc{static_cast<int>(t), sequence};  
   std::vector<std::string> prefixes = pc.getPrefixes();
   std::cout << prefixes.size() << '\n';
@@ -90,6 +122,7 @@ int main() {
   int partitions = partitionSequence(sequence, t);
   constructTrees("temp_prfx", facPointer, partitions);
   splitTrees(prefixes, facPointer);
+  mergeTrees(prefixes, facPointer);
 }
 
 // Make list of variable length prefixes

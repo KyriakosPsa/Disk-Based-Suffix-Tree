@@ -60,7 +60,7 @@ std::string readSequence(std::string filePath) {
         
     }
     ifs.close();
-    return seq;
+    return seq + "$";
 }
 
 void removeFiles(const std::string &mode)

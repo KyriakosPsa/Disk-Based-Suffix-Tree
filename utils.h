@@ -33,4 +33,6 @@ public:
     int limitMemoryLinux(size_t max);
 };
 
+std::string findCommonPrefix(std::string &str1, std::string &str2);
+
 #endif

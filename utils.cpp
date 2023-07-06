@@ -1,8 +1,11 @@
+#define NOMINMAX
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "utils.h"
 // Relevant system libaries for windows and linux systems
 // If the system is windows, include the windows.h library
+
 #ifdef _WIN32
 #include <Windows.h>
 #else
@@ -87,3 +90,13 @@ int MemoryUtil::limitMemoryLinux(size_t max)
   return 0;
 }
 #endif
+
+std::string findCommonPrefix(std::string &str1, std::string &str2) {
+  size_t minLength = std::min(str1.length(), str2.length());
+  for (size_t i = 0; i < minLength; i++) {
+    if (str1.at(i) != str2.at(i)) {
+      return str1.substr(0, i);
+    }
+  }
+  return str1.substr(0, minLength);
+}

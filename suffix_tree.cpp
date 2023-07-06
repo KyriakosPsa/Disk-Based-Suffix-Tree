@@ -36,8 +36,9 @@ SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, i
     m_idFactory = idFactory;
 }
 
-SuffixTree::SuffixTree(std::ifstream &archive)
+SuffixTree::SuffixTree(std::ifstream &archive, IdFactory* idFactory)
 {
+    m_idFactory = idFactory;
     std::string temp;
     std::getline(archive, temp);
     m_leaves = deserializeLeaves(temp);
@@ -289,8 +290,28 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
 {
     for (auto child : m_nodes.at(node).m_children)
     {
+        if (child == 49030) {
+            std::cout << 49030 << '\n';
+        }
         children.push_back(std::make_pair(child, m_nodes.at(child)));
         this->getAllChildren(child, children);
+    }
+}
+
+void SuffixTree::copyNodes(std::vector<std::pair<int, Node>> &children) {
+    std::vector<int> deletedNodes{};
+    for (std::pair<int, Node> child: children) {
+        if (child.second.m_sub.ends_with('$')) {
+            child.second.m_sub.pop_back();
+        }
+        if (child.second.m_sub.length() > 0) {
+            m_nodes.emplace(child.first, child.second);
+        } else {
+            std::vector<int> newChildren = m_nodes.at(child.second.m_parent).m_children;
+            newChildren.erase(std::remove(newChildren.begin(), newChildren.end(), child.first), newChildren.end());
+            m_nodes.at(child.second.m_parent).m_children = newChildren;
+        }
+        
     }
 }
 
@@ -309,10 +330,6 @@ std::vector<int> SuffixTree::queryPrefix(const std::string &str)
             if (nodeStr.length() > remaining.length())
             {
                 searchResult = nodeStr.rfind(remaining, 0);
-                if (!nodeStr.starts_with(remaining) && searchResult == 0) {
-                    std::cout << nodeStr << '\n';
-                    std::cout << remaining << '\n';
-                }
                 if (searchResult == 0)
                 {
                     remaining = "";
@@ -344,7 +361,7 @@ std::vector<int> SuffixTree::queryPrefix(const std::string &str)
         }
         if (flag == currentNode)
         {
-            std::cout << "Not found in tree: " << remaining << '\n';
+            // std::cout << "Not found in tree: " << remaining << '\n';
             return involvedNodes;
         }
         else
@@ -422,9 +439,9 @@ void SuffixTree::addSuffix(const std::string &suf)
         if none do so, it creates a new child node with the remained of the suffix from the current character position*/
         while (true)
         {
-            if (!m_nodes.contains(currentNodeKey)) {
-                std::cout << currentNodeKey << '\n';
-            }
+            // if (!m_nodes.contains(currentNodeKey)) {
+            //     std::cout << currentNodeKey << '\n';
+            // }
             // Assign all the child nodes of the current node to the children list
             auto children = m_nodes.at(currentNodeKey).m_children;
             /* If the index of the current child node is equal to the size of the children list
@@ -489,6 +506,7 @@ void SuffixTree::addSuffix(const std::string &suf)
         }
     }
 }
+
 std::string SuffixTree::serializeLeaves() {
     std::string gen{""};
     for (auto i: m_leaves) {
@@ -509,7 +527,7 @@ std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
     return leaves;
 }
 
-    std::string SuffixTree::serializeNodes() {
+std::string SuffixTree::serializeNodes() {
     std::string gen{""};
     for (auto i: m_nodes) {
         gen+= std::to_string(i.first);
@@ -522,6 +540,147 @@ std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
 
 int SuffixTree::countLeaves() {
     return m_leaves.size();
+}
+
+void SuffixTree::merge(SuffixTree &rightTree) {
+    // the current tree is the left tree, the incoming tree is the right tree.
+    mergeChildren(m_rootId, rightTree.m_rootId, rightTree);
+}
+
+void SuffixTree::testId(int nodeId, int lineId) {
+    try {
+        Node newNode = this->m_nodes.at(nodeId);
+    } catch (std::exception& e) {
+        std::cout << "Out of range at line: " << lineId << " " << e.what() << " at.() " << nodeId << std::endl;
+        // std::cout << e.what() << " " << lineId << std::endl;
+    }
+}
+
+void SuffixTree::splitRoot(std::string prefix) {
+    Node rootNode = m_nodes.at(m_rootId);
+    if (rootNode.m_sub.ends_with('$')) {
+            rootNode.m_sub.pop_back();
+        }
+    if (rootNode.m_sub.length() > prefix.length()) {
+        std::string commonPrefix = findCommonPrefix(rootNode.m_sub, prefix);
+        int newId = (*this->m_idFactory).createId();
+        Node newNode{rootNode.m_sub.substr(commonPrefix.length()), rootNode.m_children, m_rootId};
+        m_nodes.emplace(newId, newNode);
+
+        rootNode.m_sub = commonPrefix;
+        rootNode.m_children = std::vector<int>{newId};
+    }
+}
+
+void SuffixTree::removeDollarChildren(int nodeId) {
+    std::vector<int> newChildren{};
+    for (int child: this->m_nodes.at(nodeId).m_children) {
+        std::string nodeString = this->m_nodes.at(child).m_sub;
+        if (nodeString.ends_with('$')) {
+            nodeString.pop_back();
+        }
+        if (nodeString.length() > 0) {
+            this->m_nodes.at(child).m_sub = nodeString;
+            newChildren.push_back(child);
+        } else {
+            this->m_nodes.erase(child);
+        }
+    }
+    this->m_nodes.at(nodeId).m_children = newChildren;
+}
+
+void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &rightTree) {
+    std::string rightString;
+    std::string leftString;
+    std::string subStr;
+
+    // remove children that are just the "$" string.
+    this->removeDollarChildren(leftNodeId);
+    rightTree.removeDollarChildren(rightNodeId);
+
+    std::vector<int> rightChildren = rightTree.m_nodes.at(rightNodeId).m_children;
+    std::vector<int> leftChildren = this->m_nodes.at(leftNodeId).m_children;
+    std::vector<int> pendingRight = rightChildren;
+    for (int leftChild: this->m_nodes.at(leftNodeId).m_children) {
+        leftString = this->m_nodes.at(leftChild).m_sub;
+
+        for (int rightChild: rightChildren) {
+            rightString = rightTree.m_nodes.at(rightChild).m_sub;
+            std::string commonPrefix = findCommonPrefix(leftString, rightString);
+
+            if ((commonPrefix.length() == leftString.length()) == rightString.length()) {
+                mergeChildren(leftChild, rightChild, rightTree);
+                pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
+            } else if (commonPrefix.length() > 0) {
+                if (leftString.substr(commonPrefix.length()).length() == 0) {
+                    Node rightNew{rightString.substr(commonPrefix.length()), rightTree.m_nodes.at(rightChild).m_children, leftChild};
+                
+                    this->m_nodes.emplace(rightChild, rightNew);
+
+                    std::vector<std::pair<int, Node>> children;
+                    rightTree.getAllChildren(rightChild, children);
+                    this->copyNodes(children);
+                    pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
+                    m_nodes.at(leftChild).m_children.push_back(rightChild);
+                    break;
+                } else if (rightString.substr(commonPrefix.length()).length() == 0) { 
+                    int idLeft = (*this->m_idFactory).createId();
+                    std::string leftNewString = leftString.substr(commonPrefix.length());
+                    Node leftNew{leftNewString, m_nodes.at(leftChild).m_children, leftChild};
+                    this->m_nodes.emplace(idLeft, leftNew);
+                    this->m_nodes.emplace(rightChild, rightTree.m_nodes.at(rightChild));
+                    this->m_nodes.at(rightChild).m_parent = leftChild;
+                    std::vector<std::pair<int, Node>> children;
+                    rightTree.getAllChildren(rightChild, children);
+                    for (std::pair<int, Node> child: children) {
+                        if (child.second.m_parent == rightChild) {
+                            child.second.m_parent = leftChild;
+                        }
+                    }
+                    this->copyNodes(children);
+                    pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
+                    m_nodes.at(leftChild).m_children = std::vector<int>{idLeft, rightChild};
+                    m_nodes.at(leftChild).m_sub = commonPrefix;
+                    break;
+                } else {
+                    // Create a new node id to split left
+                    int idLeft = (*this->m_idFactory).createId();
+
+                    // m_sub is the substr from the common prefix length to the end of the original string
+                    // m_children are the children of each original node, now moved to be children of the second half of the split node.
+                    // m_parent is the left node id. The right tree will be discarded.
+                    Node leftNew{leftString.substr(commonPrefix.length()), m_nodes.at(leftChild).m_children, leftChild};
+                    this->m_nodes.emplace(idLeft, leftNew);
+
+                    // left node is edited
+                    // m_sub is the common prefix
+                    // m_children is only the two new nodes, the other children have been moved to leftNew.
+                    m_nodes.at(leftChild).m_children = std::vector<int>{idLeft, rightChild};
+                    m_nodes.at(leftChild).m_sub = commonPrefix;
+
+                    // create new right node with id from the other tree so all children point to it, and with the substring as m_sub
+                    Node rightNew{rightString.substr(commonPrefix.length()), rightTree.m_nodes.at(rightChild).m_children, leftChild};
+                    this->m_nodes.emplace(rightChild, rightNew);
+                    std::vector<std::pair<int, Node>> children;
+                    rightTree.getAllChildren(rightChild, children);
+                    this->copyNodes(children);
+                    pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
+                    break;
+                }
+            }
+        }
+        rightChildren = pendingRight;
+    }
+
+    for (int rightChild: pendingRight) {
+        this->m_nodes.emplace(rightChild, rightTree.m_nodes.at(rightChild));
+        this->m_nodes.at(rightChild).m_parent = leftNodeId;
+        this->m_nodes.at(leftNodeId).m_children.push_back(rightChild);
+
+        std::vector<std::pair<int, Node>> children;
+        rightTree.getAllChildren(rightChild, children);
+        this->copyNodes(children);
+    }
 }
 
 SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation, IdFactory *idFactory)
@@ -545,8 +704,6 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int>
     }
 
     // add new root node and remove it as child from parent in old tree
-    std::cout << rootString << '\n';
-    std:: cout << str << '\n';
     Node newRoot{rootString, tree.m_nodes.at(finalNode).m_children, -1};
     std::vector<std::pair<int, Node>> newNodes;
     newNodes.push_back(std::make_pair(finalNode, newRoot));
@@ -556,30 +713,3 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int>
     tree.deleteNode(newNodes);
     return new SuffixTree(newNodes, str.length(), finalNode, idFactory);
 }
-
-// int main()
-// {
-//     SuffixTree tree{};
-//     tree.build("BANANA$");
-//     std::cout << std::boolalpha;
-//     std::cout << tree.isUnique("BAN") << '\n';
-//     tree.makeLeaves();
-//     tree.visualize();
-//     cout << '\n';
-
-//     std::ofstream ofs("filename.txt");
-//     tree.serialize(ofs);
-
-//     ifstream ifs("filename.txt");
-//     SuffixTree tree2(ifs);
-//     tree2.visualize();
-//     // std::string prefix{"NAN"};
-//     // vector<int> location = tree.queryPrefix(prefix);
-//     // if (!(location.empty()))
-//     // {
-//     //     SuffixTree newTree = *(splitTree(tree, prefix, location));
-//     //     newTree.visualizeNoLeaves();
-//     //     cout << '\n';
-//     // }
-//     // tree.visualize();
-// }
