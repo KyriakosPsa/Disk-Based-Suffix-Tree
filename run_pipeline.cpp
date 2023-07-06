@@ -87,15 +87,12 @@ void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory) 
       SuffixTree newTree{ifs, idFactory};
       newTree.splitRoot(pre);
       baseTree.merge(newTree);
-      // baseTree.visualizeNoLeaves();
-      // newTree.visualizeNoLeaves();
     }
-    std::cout << "test" << '\n';
     baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
-    std::ofstream save;
-    save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
-    baseTree.visualizeNoLeaves(save);
-    save.close();
+    // std::ofstream save;
+    // save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
+    // baseTree.visualizeNoLeaves(save);
+    // save.close();
     // baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
   }
 }
