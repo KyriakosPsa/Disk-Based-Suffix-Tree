@@ -139,7 +139,7 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     std::pair<std::string, int> linkinfo = decodeSuffixlink(parent_suffix_link);
     std::string linkedtree = linkinfo.first;
     std::ifstream ifs;
-    ifs.open("temp_trees/merged_trees/" + linkedtree + ".txt");
+    ifs.open("temp_trees/merged_trees/" + linkedtree);
     SuffixTree parenttree{ifs};
     int link = parentWithlink(parenttree, path, linkinfo.second);
     if (link != -1)

@@ -621,7 +621,6 @@ void SuffixTree::removeDollarChildren(int nodeId)
 
 int SuffixTree::createId() {
     int id = m_globalId;
-    std::cout << id << '\n';
     m_globalId += 1;
     return id;
 }
