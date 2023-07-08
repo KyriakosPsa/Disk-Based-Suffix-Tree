@@ -603,12 +603,10 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
     std::vector<int> pendingRight = rightChildren;
     for (int leftChild: this->m_nodes.at(leftNodeId).m_children) {
         leftString = this->m_nodes.at(leftChild).m_sub;
-
         for (int rightChild: rightChildren) {
             rightString = rightTree.m_nodes.at(rightChild).m_sub;
             std::string commonPrefix = findCommonPrefix(leftString, rightString);
-
-            if ((commonPrefix.length() == leftString.length()) == rightString.length()) {
+            if ((commonPrefix.length() == leftString.length()) && (commonPrefix.length() == rightString.length())) {
                 mergeChildren(leftChild, rightChild, rightTree);
                 pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
             } else if (commonPrefix.length() > 0) {

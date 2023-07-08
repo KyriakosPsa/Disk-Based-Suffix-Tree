@@ -7,9 +7,8 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
-#include <Windows.h>
 
-void constructTrees(const std::string &dir, IdFactory *idFactory, int partitions) {
+void constructTrees(const std::string &dir, IdFactory *idFactory) {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees")) {
     std::filesystem::create_directory("temp_trees");
@@ -19,11 +18,19 @@ void constructTrees(const std::string &dir, IdFactory *idFactory, int partitions
     std::filesystem::create_directory("./temp_trees/partition_trees");
   }
 
-  PartitionUtility pfr{partitions};
+  PartitionUtility pfr{};
   for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-    partition = pfr.getNextPartitionString();
+    std::string partitionName = entry.path().filename().string();
+    partition = pfr.getPartitionString(partitionName);
+    std::cout << partition.length() << '\n';
     SuffixTree tree{partition, idFactory};
-  
+    std::cout << tree.m_nodes.size() << '\n';
+    tree.makeLeaves();
+    std::cout << tree.m_leaves.size() << '\n';
+    // std::ofstream file;
+    // file.open("./temp_trees/partition_trees/vis" + partitionName);
+    // tree.visualizeNoLeaves(file);
+    // file.close();
     // bool implicit{true};
     // std::string candidatePrefix;
     // // if this is the final partition, tree is already implicit
@@ -39,9 +46,7 @@ void constructTrees(const std::string &dir, IdFactory *idFactory, int partitions
     //     implicit = false;
     //   }
     // }
-    std::string partitionName = entry.path().filename().string();
     tree.serialize("./temp_trees/partition_trees/" + partitionName);
-    // std::cout << partitionName << '\n';
   }
 }
 
@@ -69,7 +74,7 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
     }
 }
 
-void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory) {
+void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory, size_t sequenceLength) {
   if (!std::filesystem::is_directory("./temp_trees/merged_trees") || !std::filesystem::exists("./temp_trees/merged_trees")) {
       std::filesystem::create_directory("./temp_trees/merged_trees");
     }
@@ -88,6 +93,9 @@ void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory) 
       newTree.splitRoot(pre);
       baseTree.merge(newTree);
     }
+    baseTree.m_length = sequenceLength;
+    baseTree.makeLeaves();
+    std::cout << pre << " leaves: " << baseTree.m_leaves.size() << '\n';
     baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
     // std::ofstream save;
     // save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
@@ -116,10 +124,10 @@ int main() {
   
   IdFactory idFactory;
   IdFactory* facPointer = &idFactory;
-  int partitions = partitionSequence(sequence, t);
-  constructTrees("temp_prfx", facPointer, partitions);
+  partitionSequence(sequence, t);
+  constructTrees("temp_prfx", facPointer);
   splitTrees(prefixes, facPointer);
-  mergeTrees(prefixes, facPointer);
+  mergeTrees(prefixes, facPointer, sequence.length());
 }
 
 // Make list of variable length prefixes
