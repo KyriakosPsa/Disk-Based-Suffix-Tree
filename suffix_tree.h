@@ -11,6 +11,7 @@
 class SuffixTree
 {
 public:
+    static int m_globalId;
     std::unordered_map<int, Node> m_nodes{};
     std::unordered_map<int, int> m_leaves{}; // Key -> Node unique id , Value -> suffix index in the original string
     size_t m_length{0};
@@ -18,13 +19,13 @@ public:
 
     SuffixTree();
 
-    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId, IdFactory *idFactory);
+    SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId);
 
-    SuffixTree(const std::string &str, IdFactory *idFactory, const std::string &prefix = "");
+    SuffixTree(const std::string &str, const std::string &prefix = "");
 
     SuffixTree(std::ifstream &archive);
 
-    SuffixTree(std::ifstream &archive, IdFactory *idFactory);
+    // SuffixTree(std::ifstream &archive, IdFactory *idFactory);
 
     // void makeExplicit(const std::string &str);
 
@@ -65,7 +66,8 @@ public:
     void mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &tree);
 
 private:
-    IdFactory *m_idFactory;
+    int createId();
+
     void addSuffix(const std::string &suf);
 
     std::string serializeLeaves();
@@ -79,6 +81,6 @@ private:
     void removeDollarChildren(int nodeId);
 };
 
-SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation, IdFactory *idFactory);
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation);
 
 #endif

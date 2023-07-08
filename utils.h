@@ -4,25 +4,25 @@
 #include "utils.h"
 #include <iostream>
 
-class IdFactory
-{
-public:
-    int createId()
-    {
-        int id = m_id;
-        m_id++;
-        // std::cout << id << '\n';
-        return id;
-    }
+// class IdFactory
+// {
+// public:
+//     int createId()
+//     {
+//         int id = m_id;
+//         m_id++;
+//         // std::cout << id << '\n';
+//         return id;
+//     }
 
-    int getId()
-    {
-        return m_id;
-    }
+//     int getId()
+//     {
+//         return m_id;
+//     }
 
-private:
-    int m_id{0};
-};
+// private:
+//     int m_id{0};
+// };
 
 class MemoryUtil
 {

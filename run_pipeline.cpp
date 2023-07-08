@@ -8,7 +8,7 @@
 #include <iostream>
 #include <filesystem>
 
-void constructTrees(const std::string &dir, IdFactory *idFactory) {
+void constructTrees(const std::string &dir) {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees")) {
     std::filesystem::create_directory("temp_trees");
@@ -22,11 +22,10 @@ void constructTrees(const std::string &dir, IdFactory *idFactory) {
   for (const auto& entry : std::filesystem::directory_iterator(dir)) {
     std::string partitionName = entry.path().filename().string();
     partition = pfr.getPartitionString(partitionName);
-    std::cout << partition.length() << '\n';
-    SuffixTree tree{partition, idFactory};
-    std::cout << tree.m_nodes.size() << '\n';
-    tree.makeLeaves();
-    std::cout << tree.m_leaves.size() << '\n';
+    // std::cout << partition.length() << '\n';
+    SuffixTree tree{partition};
+    // std::cout << tree.m_nodes.size() << '\n';
+    // std::cout << tree.m_leaves.size() << '\n';
     // std::ofstream file;
     // file.open("./temp_trees/partition_trees/vis" + partitionName);
     // tree.visualizeNoLeaves(file);
@@ -50,7 +49,7 @@ void constructTrees(const std::string &dir, IdFactory *idFactory) {
   }
 }
 
-void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) {
+void splitTrees(const std::vector<std::string> &prefixes) {
   std::ifstream ifs;
   std::vector<int> location;
   for (auto pre: prefixes) {
@@ -61,12 +60,12 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
 
   for (const auto& entry : std::filesystem::directory_iterator("./temp_trees/partition_trees/")) {
       ifs.open(entry.path());
-      SuffixTree tree{ifs, idFactory};
+      SuffixTree tree{ifs};
       for (const auto& pre: prefixes) {
         std::vector<int> location = tree.queryPrefix(pre);
         if (!(location.empty()))
         {
-            SuffixTree newTree = *(splitTree(tree, pre, location, idFactory));
+            SuffixTree newTree = *(splitTree(tree, pre, location));
             newTree.serialize("./temp_trees/" + pre + '/' + entry.path().filename().string());
         }
         // need prefix location here.
@@ -74,7 +73,7 @@ void splitTrees(const std::vector<std::string> &prefixes, IdFactory *idFactory) 
     }
 }
 
-void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory, size_t sequenceLength) {
+void mergeTrees(const std::vector<std::string> &prefixes, size_t sequenceLength) {
   if (!std::filesystem::is_directory("./temp_trees/merged_trees") || !std::filesystem::exists("./temp_trees/merged_trees")) {
       std::filesystem::create_directory("./temp_trees/merged_trees");
     }
@@ -83,19 +82,19 @@ void mergeTrees(const std::vector<std::string> &prefixes, IdFactory* idFactory, 
     std::ifstream ifs;
     auto dir = *(iter);
     ifs.open(dir.path());
-    SuffixTree baseTree{ifs, idFactory};
+    SuffixTree baseTree{ifs};
     baseTree.splitRoot(pre);
     iter++;
     ifs.close();
     for (const auto& entry : iter) {
       ifs.open(entry.path());
-      SuffixTree newTree{ifs, idFactory};
+      SuffixTree newTree{ifs};
       newTree.splitRoot(pre);
       baseTree.merge(newTree);
     }
     baseTree.m_length = sequenceLength;
     baseTree.makeLeaves();
-    std::cout << pre << " leaves: " << baseTree.m_leaves.size() << '\n';
+    // std::cout << pre << " leaves: " << baseTree.m_leaves.size() << '\n';
     baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
     // std::ofstream save;
     // save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
@@ -122,12 +121,10 @@ int main() {
   std::vector<std::string> prefixes = pc.getPrefixes();
   std::cout << prefixes.size() << '\n';
   
-  IdFactory idFactory;
-  IdFactory* facPointer = &idFactory;
   partitionSequence(sequence, t);
-  constructTrees("temp_prfx", facPointer);
-  splitTrees(prefixes, facPointer);
-  mergeTrees(prefixes, facPointer, sequence.length());
+  constructTrees("temp_prfx");
+  splitTrees(prefixes);
+  mergeTrees(prefixes, sequence.length());
 }
 
 // Make list of variable length prefixes

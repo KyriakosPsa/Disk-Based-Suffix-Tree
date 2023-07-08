@@ -9,6 +9,8 @@
 #include "suffix_tree.h"
 #include "utils.h"
 
+int SuffixTree::m_globalId = 0;
+
 std::vector<std::string> splitByDelimiter(const std::string &str, char delimiter)
 {
     std::vector<std::string> segments;
@@ -25,7 +27,7 @@ SuffixTree::SuffixTree()
 {
 }
 
-SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId, IdFactory *idFactory)
+SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, int rootId)
 {
     // TODO fix unused and wrong properties length, idFactory
     m_length = length;
@@ -34,7 +36,6 @@ SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, i
     {
         m_nodes.insert(node);
     }
-    m_idFactory = idFactory;
 }
 
 SuffixTree::SuffixTree(std::ifstream &archive)
@@ -51,30 +52,13 @@ SuffixTree::SuffixTree(std::ifstream &archive)
     archive.close();
 }
 
-SuffixTree::SuffixTree(std::ifstream &archive, IdFactory *idFactory)
-{
-    m_idFactory = idFactory;
-    std::string temp;
-    std::getline(archive, temp);
-    m_leaves = deserializeLeaves(temp);
-    std::getline(archive, temp);
-    m_nodes = deserializeNodes(temp);
-    std::getline(archive, temp);
-    m_length = stringToSize(temp);
-    std::getline(archive, temp);
-    m_rootId = stoi(temp);
-
-    archive.close();
-}
-
 // Construct the suffix tree from a specified string
-SuffixTree::SuffixTree(const std::string &str, IdFactory *idFactory, const std::string &prefix)
+SuffixTree::SuffixTree(const std::string &str, const std::string &prefix)
 {
-    m_idFactory = idFactory;
     m_length = str.length();
     // Initialize the tree with an empty root node.
     // root parent = -1
-    int id = (*m_idFactory).createId();
+    int id = createId();
     m_nodes.emplace(id, Node{prefix, {}, -1});
     m_rootId = id;
 
@@ -473,7 +457,7 @@ void SuffixTree::addSuffix(const std::string &suf)
                 */
             if (x2 == children.size())
             {
-                int id = (*m_idFactory).createId();
+                int id = createId();
                 // no matching child, create a new child node
                 Node newNode{suf.substr(i), {}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
                 m_nodes.emplace(id, newNode);                    // Add to nodes vector
@@ -512,7 +496,7 @@ void SuffixTree::addSuffix(const std::string &suf)
             {
                 // auto n3 = n2; // Assign a copy of the current child node
                 // n2 = nodes.size();
-                int id = (*m_idFactory).createId();
+                int id = createId();
                 Node newNode{sub2.substr(0, j), {childOfInterestKey}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
                 m_nodes.emplace(id, newNode);
                 m_nodes.at(childOfInterestKey).m_sub = sub2.substr(j); // We dont change the unique id, so the leaf is carried over while the substring changes inplace, good stuff
@@ -603,7 +587,7 @@ void SuffixTree::splitRoot(std::string prefix)
     if (rootNode.m_sub.length() > prefix.length())
     {
         std::string commonPrefix = findCommonPrefix(rootNode.m_sub, prefix);
-        int newId = (*this->m_idFactory).createId();
+        int newId = createId();
         Node newNode{rootNode.m_sub.substr(commonPrefix.length()), rootNode.m_children, m_rootId};
         m_nodes.emplace(newId, newNode);
 
@@ -633,6 +617,13 @@ void SuffixTree::removeDollarChildren(int nodeId)
         }
     }
     this->m_nodes.at(nodeId).m_children = newChildren;
+}
+
+int SuffixTree::createId() {
+    int id = m_globalId;
+    std::cout << id << '\n';
+    m_globalId += 1;
+    return id;
 }
 
 void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &rightTree)
@@ -675,7 +666,7 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
                 }
                 else if (rightString.substr(commonPrefix.length()).length() == 0)
                 {
-                    int idLeft = (*this->m_idFactory).createId();
+                    int idLeft = createId();
                     std::string leftNewString = leftString.substr(commonPrefix.length());
                     Node leftNew{leftNewString, m_nodes.at(leftChild).m_children, leftChild};
                     this->m_nodes.emplace(idLeft, leftNew);
@@ -699,7 +690,7 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
                 else
                 {
                     // Create a new node id to split left
-                    int idLeft = (*this->m_idFactory).createId();
+                    int idLeft = createId();
 
                     // m_sub is the substr from the common prefix length to the end of the original string
                     // m_children are the children of each original node, now moved to be children of the second half of the split node.
@@ -739,7 +730,7 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
     }
 }
 
-SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation, IdFactory *idFactory)
+SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation)
 {
     std::string rootString;
     int finalNode = prefixLocation.back();
@@ -773,5 +764,5 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int>
 
     tree.getAllChildren(finalNode, newNodes);
     tree.deleteNode(newNodes);
-    return new SuffixTree(newNodes, str.length(), finalNode, idFactory);
+    return new SuffixTree(newNodes, str.length(), finalNode);
 }
