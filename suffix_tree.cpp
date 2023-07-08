@@ -9,14 +9,15 @@
 #include "suffix_tree.h"
 #include "utils.h"
 
-std::vector<std::string> splitByDelimiter(const std::string &str, char delimiter) {
+std::vector<std::string> splitByDelimiter(const std::string &str, char delimiter)
+{
     std::vector<std::string> segments;
     std::string segment;
     std::stringstream stream(str);
-    while(std::getline(stream, segment, delimiter))
-        {
-            segments.push_back(segment);
-        }
+    while (std::getline(stream, segment, delimiter))
+    {
+        segments.push_back(segment);
+    }
     return segments;
 }
 
@@ -36,7 +37,21 @@ SuffixTree::SuffixTree(std::vector<std::pair<int, Node>> nodes, size_t length, i
     m_idFactory = idFactory;
 }
 
-SuffixTree::SuffixTree(std::ifstream &archive, IdFactory* idFactory)
+SuffixTree::SuffixTree(std::ifstream &archive)
+{
+    std::string temp;
+    std::getline(archive, temp);
+    m_leaves = deserializeLeaves(temp);
+    std::getline(archive, temp);
+    m_nodes = deserializeNodes(temp);
+    std::getline(archive, temp);
+    m_length = stringToSize(temp);
+    std::getline(archive, temp);
+    m_rootId = stoi(temp);
+    archive.close();
+}
+
+SuffixTree::SuffixTree(std::ifstream &archive, IdFactory *idFactory)
 {
     m_idFactory = idFactory;
     std::string temp;
@@ -101,7 +116,7 @@ SuffixTree::SuffixTree(const std::string &str, IdFactory *idFactory, const std::
 //     }
 // }
 
-// // Check if a prefix is unique, meaning it is not already represented within the tree structure
+// Check if a prefix is unique, meaning it is not already represented within the tree structure
 // bool SuffixTree::isUnique(const string &str)
 // {
 //     int currentNode = m_rootId;
@@ -290,7 +305,8 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
 {
     for (auto child : m_nodes.at(node).m_children)
     {
-        if (child == 49030) {
+        if (child == 49030)
+        {
             std::cout << 49030 << '\n';
         }
         children.push_back(std::make_pair(child, m_nodes.at(child)));
@@ -298,20 +314,25 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
     }
 }
 
-void SuffixTree::copyNodes(std::vector<std::pair<int, Node>> &children) {
+void SuffixTree::copyNodes(std::vector<std::pair<int, Node>> &children)
+{
     std::vector<int> deletedNodes{};
-    for (std::pair<int, Node> child: children) {
-        if (child.second.m_sub.ends_with('$')) {
+    for (std::pair<int, Node> child : children)
+    {
+        if (child.second.m_sub.ends_with('$'))
+        {
             child.second.m_sub.pop_back();
         }
-        if (child.second.m_sub.length() > 0) {
+        if (child.second.m_sub.length() > 0)
+        {
             m_nodes.emplace(child.first, child.second);
-        } else {
+        }
+        else
+        {
             std::vector<int> newChildren = m_nodes.at(child.second.m_parent).m_children;
             newChildren.erase(std::remove(newChildren.begin(), newChildren.end(), child.first), newChildren.end());
             m_nodes.at(child.second.m_parent).m_children = newChildren;
         }
-        
     }
 }
 
@@ -396,7 +417,8 @@ void SuffixTree::deleteNode(std::vector<std::pair<int, Node>> nodes)
     }
 }
 
-size_t SuffixTree::stringToSize(std::string &str) {
+size_t SuffixTree::stringToSize(std::string &str)
+{
     std::stringstream stream(str);
     size_t output;
     stream >> output;
@@ -404,12 +426,14 @@ size_t SuffixTree::stringToSize(std::string &str) {
     return output;
 }
 
-std::unordered_map<int, Node> SuffixTree::deserializeNodes(std::string &line) {
+std::unordered_map<int, Node> SuffixTree::deserializeNodes(std::string &line)
+{
     std::vector<std::string> segments = splitByDelimiter(line, '.');
     std::unordered_map<int, Node> nodes;
 
-    for (size_t i = 0; i < segments.size(); i += 2) {
-        nodes.emplace(stoi(segments[i]), Node(segments[i+1]));
+    for (size_t i = 0; i < segments.size(); i += 2)
+    {
+        nodes.emplace(stoi(segments[i]), Node(segments[i + 1]));
     }
     return nodes;
 }
@@ -428,7 +452,7 @@ void SuffixTree::addSuffix(const std::string &suf)
 /*Adds each of the suffixes picked inside the SuffixTree constructor to the tree*/
 {
     int currentNodeKey = m_rootId; // Current Node
-    size_t i = 0;           // Current character of the suffix string
+    size_t i = 0;                  // Current character of the suffix string
     // Check if the position of the current character is inside the suffix lenght
     while (i < suf.length())
     {
@@ -452,7 +476,7 @@ void SuffixTree::addSuffix(const std::string &suf)
                 int id = (*m_idFactory).createId();
                 // no matching child, create a new child node
                 Node newNode{suf.substr(i), {}, currentNodeKey}; // The remainder of the suffix from from current character position becomes the new child node
-                m_nodes.emplace(id, newNode);                  // Add to nodes vector
+                m_nodes.emplace(id, newNode);                    // Add to nodes vector
                 m_nodes.at(currentNodeKey).m_children.push_back(id);
                 return;
             }
@@ -466,7 +490,7 @@ void SuffixTree::addSuffix(const std::string &suf)
         }
 
         /*This part of the code handles partial matching between the current suffix and an existing child node substring,
-            */
+         */
         // find prefix of remaining suffix in common with child node
         auto sub2 = m_nodes.at(childOfInterestKey).m_sub;
         size_t j = 0;
@@ -500,68 +524,84 @@ void SuffixTree::addSuffix(const std::string &suf)
             }
             j++;
         }
-        i += j;                // advance past part in common
-        if (!didSplit) {
+        i += j; // advance past part in common
+        if (!didSplit)
+        {
             currentNodeKey = childOfInterestKey;
         }
     }
 }
 
-std::string SuffixTree::serializeLeaves() {
+std::string SuffixTree::serializeLeaves()
+{
     std::string gen{""};
-    for (auto i: m_leaves) {
-        gen+= std::to_string(i.first);
-        gen+= '.';
-        gen+= std::to_string(i.second);
-        gen+= '.';
+    for (auto i : m_leaves)
+    {
+        gen += std::to_string(i.first);
+        gen += '.';
+        gen += std::to_string(i.second);
+        gen += '.';
     }
     return gen;
 }
 
-std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line) {
+std::unordered_map<int, int> SuffixTree::deserializeLeaves(std::string &line)
+{
     std::vector<std::string> segments = splitByDelimiter(line, '.');
     std::unordered_map<int, int> leaves;
-    for (size_t i = 0; i < segments.size(); i += 2) {
-        leaves.emplace(stoi(segments[i]), stoi(segments[i+1]));
+    for (size_t i = 0; i < segments.size(); i += 2)
+    {
+        leaves.emplace(stoi(segments[i]), stoi(segments[i + 1]));
     }
     return leaves;
 }
 
-std::string SuffixTree::serializeNodes() {
+std::string SuffixTree::serializeNodes()
+{
     std::string gen{""};
-    for (auto i: m_nodes) {
-        gen+= std::to_string(i.first);
-        gen+= '.';
-        gen+= i.second.serialize();
-        gen+= '.';
+    for (auto i : m_nodes)
+    {
+        gen += std::to_string(i.first);
+        gen += '.';
+        gen += i.second.serialize();
+        gen += '.';
     }
     return gen;
 }
 
-int SuffixTree::countLeaves() {
+int SuffixTree::countLeaves()
+{
     return m_leaves.size();
 }
 
-void SuffixTree::merge(SuffixTree &rightTree) {
+void SuffixTree::merge(SuffixTree &rightTree)
+{
     // the current tree is the left tree, the incoming tree is the right tree.
     mergeChildren(m_rootId, rightTree.m_rootId, rightTree);
 }
 
-void SuffixTree::testId(int nodeId, int lineId) {
-    try {
+void SuffixTree::testId(int nodeId, int lineId)
+{
+    try
+    {
         Node newNode = this->m_nodes.at(nodeId);
-    } catch (std::exception& e) {
+    }
+    catch (std::exception &e)
+    {
         std::cout << "Out of range at line: " << lineId << " " << e.what() << " at.() " << nodeId << std::endl;
         // std::cout << e.what() << " " << lineId << std::endl;
     }
 }
 
-void SuffixTree::splitRoot(std::string prefix) {
+void SuffixTree::splitRoot(std::string prefix)
+{
     Node rootNode = m_nodes.at(m_rootId);
-    if (rootNode.m_sub.ends_with('$')) {
-            rootNode.m_sub.pop_back();
-        }
-    if (rootNode.m_sub.length() > prefix.length()) {
+    if (rootNode.m_sub.ends_with('$'))
+    {
+        rootNode.m_sub.pop_back();
+    }
+    if (rootNode.m_sub.length() > prefix.length())
+    {
         std::string commonPrefix = findCommonPrefix(rootNode.m_sub, prefix);
         int newId = (*this->m_idFactory).createId();
         Node newNode{rootNode.m_sub.substr(commonPrefix.length()), rootNode.m_children, m_rootId};
@@ -572,24 +612,31 @@ void SuffixTree::splitRoot(std::string prefix) {
     }
 }
 
-void SuffixTree::removeDollarChildren(int nodeId) {
+void SuffixTree::removeDollarChildren(int nodeId)
+{
     std::vector<int> newChildren{};
-    for (int child: this->m_nodes.at(nodeId).m_children) {
+    for (int child : this->m_nodes.at(nodeId).m_children)
+    {
         std::string nodeString = this->m_nodes.at(child).m_sub;
-        if (nodeString.ends_with('$')) {
+        if (nodeString.ends_with('$'))
+        {
             nodeString.pop_back();
         }
-        if (nodeString.length() > 0) {
+        if (nodeString.length() > 0)
+        {
             this->m_nodes.at(child).m_sub = nodeString;
             newChildren.push_back(child);
-        } else {
+        }
+        else
+        {
             this->m_nodes.erase(child);
         }
     }
     this->m_nodes.at(nodeId).m_children = newChildren;
 }
 
-void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &rightTree) {
+void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &rightTree)
+{
     std::string rightString;
     std::string leftString;
     std::string subStr;
@@ -601,7 +648,8 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
     std::vector<int> rightChildren = rightTree.m_nodes.at(rightNodeId).m_children;
     std::vector<int> leftChildren = this->m_nodes.at(leftNodeId).m_children;
     std::vector<int> pendingRight = rightChildren;
-    for (int leftChild: this->m_nodes.at(leftNodeId).m_children) {
+    for (int leftChild : this->m_nodes.at(leftNodeId).m_children)
+    {
         leftString = this->m_nodes.at(leftChild).m_sub;
         for (int rightChild: rightChildren) {
             rightString = rightTree.m_nodes.at(rightChild).m_sub;
@@ -609,10 +657,13 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
             if ((commonPrefix.length() == leftString.length()) && (commonPrefix.length() == rightString.length())) {
                 mergeChildren(leftChild, rightChild, rightTree);
                 pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
-            } else if (commonPrefix.length() > 0) {
-                if (leftString.substr(commonPrefix.length()).length() == 0) {
+            }
+            else if (commonPrefix.length() > 0)
+            {
+                if (leftString.substr(commonPrefix.length()).length() == 0)
+                {
                     Node rightNew{rightString.substr(commonPrefix.length()), rightTree.m_nodes.at(rightChild).m_children, leftChild};
-                
+
                     this->m_nodes.emplace(rightChild, rightNew);
 
                     std::vector<std::pair<int, Node>> children;
@@ -621,7 +672,9 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
                     pendingRight.erase(std::remove(pendingRight.begin(), pendingRight.end(), rightChild), pendingRight.end());
                     m_nodes.at(leftChild).m_children.push_back(rightChild);
                     break;
-                } else if (rightString.substr(commonPrefix.length()).length() == 0) { 
+                }
+                else if (rightString.substr(commonPrefix.length()).length() == 0)
+                {
                     int idLeft = (*this->m_idFactory).createId();
                     std::string leftNewString = leftString.substr(commonPrefix.length());
                     Node leftNew{leftNewString, m_nodes.at(leftChild).m_children, leftChild};
@@ -630,8 +683,10 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
                     this->m_nodes.at(rightChild).m_parent = leftChild;
                     std::vector<std::pair<int, Node>> children;
                     rightTree.getAllChildren(rightChild, children);
-                    for (std::pair<int, Node> child: children) {
-                        if (child.second.m_parent == rightChild) {
+                    for (std::pair<int, Node> child : children)
+                    {
+                        if (child.second.m_parent == rightChild)
+                        {
                             child.second.m_parent = leftChild;
                         }
                     }
@@ -640,7 +695,9 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
                     m_nodes.at(leftChild).m_children = std::vector<int>{idLeft, rightChild};
                     m_nodes.at(leftChild).m_sub = commonPrefix;
                     break;
-                } else {
+                }
+                else
+                {
                     // Create a new node id to split left
                     int idLeft = (*this->m_idFactory).createId();
 
@@ -670,7 +727,8 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
         rightChildren = pendingRight;
     }
 
-    for (int rightChild: pendingRight) {
+    for (int rightChild : pendingRight)
+    {
         this->m_nodes.emplace(rightChild, rightTree.m_nodes.at(rightChild));
         this->m_nodes.at(rightChild).m_parent = leftNodeId;
         this->m_nodes.at(leftNodeId).m_children.push_back(rightChild);
@@ -691,13 +749,19 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int>
         pathString += tree.m_nodes.at(node).m_sub;
     }
 
-    if (pathString.length() > str.length()) {
-        if (pathString.starts_with(str)) {
+    if (pathString.length() > str.length())
+    {
+        if (pathString.starts_with(str))
+        {
             rootString = pathString;
-        } else {
+        }
+        else
+        {
             rootString = str;
         }
-    } else {
+    }
+    else
+    {
         rootString = str;
     }
 

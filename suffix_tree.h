@@ -22,6 +22,8 @@ public:
 
     SuffixTree(const std::string &str, IdFactory *idFactory, const std::string &prefix = "");
 
+    SuffixTree(std::ifstream &archive);
+
     SuffixTree(std::ifstream &archive, IdFactory *idFactory);
 
     // void makeExplicit(const std::string &str);
