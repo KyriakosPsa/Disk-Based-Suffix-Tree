@@ -145,8 +145,6 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     if (link != -1)
     {
       std ::cout << "parent with link works" << std::endl;
-      childnode.m_suffixLink = linkedtree + "*" + std::to_string(link);
-      // Output for testing
     }
   }
 
@@ -157,7 +155,7 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     int link = same_tree_parentNolinksearch(tree, path, childnode, childnode_id);
     if (link != -1)
     {
-      std::cout << "same tree witout parent works" << std::endl;
+      std::cout << "Same tree without parent link works" << std::endl;
     }
     // Sub case 2: a link for the current node exist in another tree
     else
@@ -174,10 +172,8 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
         SuffixTree othertree{ifs};
         int link = parentNolinksearch(othertree, path);
         if (link != -1)
-        {
-          childnode.m_suffixLink = othertreename + "*" + std::to_string(link);
-          // Output for testing
-          std::cout << "Other tree without parent works" << std::endl;
+        { // Output for testing
+          std::cout << "Other tree without parent link works" << std::endl;
         }
       }
     }
@@ -189,6 +185,7 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     childnode = tree.m_nodes.at(childid);
     childnode_id = childid;
     recursiveDFSearch(tree, childnode, path, parent_suffix_link, childnode_id);
+    return;
   }
 }
 
