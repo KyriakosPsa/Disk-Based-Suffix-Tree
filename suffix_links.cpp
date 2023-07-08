@@ -131,7 +131,7 @@ int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink)
 }
 
 // Recursive Depth First Search to find the suffix links of the nodes in the tree
-void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std::string &parent_suffix_link, int &childnode_id)
+void recursiveDFSearch(std::string &treeName, SuffixTree &tree, Node &childnode, std::string &path, std::string &parent_suffix_link, int &childnode_id)
 {
   // Case 1 parent has link
   if (parent_suffix_link != "")
@@ -145,6 +145,7 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     if (link != -1)
     {
       std ::cout << "parent with link works" << std::endl;
+      childnode.m_suffixLink = linkedtree + "*" + std::to_string(link);
     }
   }
 
@@ -155,7 +156,7 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
     int link = same_tree_parentNolinksearch(tree, path, childnode, childnode_id);
     if (link != -1)
     {
-      std::cout << "Same tree without parent link works" << std::endl;
+      childnode.m_suffixLink = treeName + "*" + std::to_string(link);
     }
     // Sub case 2: a link for the current node exist in another tree
     else
@@ -173,19 +174,23 @@ void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std
         int link = parentNolinksearch(othertree, path);
         if (link != -1)
         { // Output for testing
-          std::cout << "Other tree without parent link works" << std::endl;
+          std::cout << "Other tree without parent works" << std::endl;
+          childnode.m_suffixLink = othertreename + "*" + std::to_string(link);
         }
       }
     }
   }
-  for (auto childid : childnode.m_children)
+  for (int childid : childnode.m_children)
   {
     parent_suffix_link = childnode.m_suffixLink;
+    if (childid == 0)
+    {
+      std::cout << 0 << std::endl;
+    }
     path = (childnode.m_sub + tree.m_nodes.at(childid).m_sub).substr(1);
-    childnode = tree.m_nodes.at(childid);
+    Node childnode_new = tree.m_nodes.at(childid);
     childnode_id = childid;
-    recursiveDFSearch(tree, childnode, path, parent_suffix_link, childnode_id);
-    return;
+    recursiveDFSearch(treeName, tree, childnode_new, path, parent_suffix_link, childnode_id);
   }
 }
 
@@ -210,7 +215,8 @@ void createSuffixlinks(std::string &directorypath)
       Node childnode = tree.m_nodes.at(childid);
       std::string suffix = (rootnode_sub + childnode.m_sub).substr(1);
       std::string parent_suffix_link = tree.m_nodes.at(childnode.m_parent).m_suffixLink;
-      recursiveDFSearch(tree, childnode, suffix, parent_suffix_link, childid);
+      recursiveDFSearch(current_tree, tree, childnode, suffix, parent_suffix_link, childid);
     }
+    std::cout << "Suffix links created for " << current_tree << ":')" << std::endl;
   }
 }
