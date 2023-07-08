@@ -36,20 +36,16 @@ std::pair<std::string, int> decodeSuffixlink(const std::string &suffixlink)
 bool compareSubstring(Node &node, size_t &len_so_far, std::string &path)
 {
   std::string currentnodesub = node.m_sub;
-  size_t currentnodesublen = currentnodesub.length();
-  size_t pathlen = path.length();
-  for (size_t i = 0; i < currentnodesublen; i++)
+  int result = path.substr(len_so_far).rfind(currentnodesub, 0);
+  if (result == 0)
   {
-    if ((i + len_so_far < pathlen) && (currentnodesub[i] == path[i + len_so_far]))
-    {
-      len_so_far++;
-    }
-    else
-    {
-      return false;
-    }
+    len_so_far += currentnodesub.length();
+    return true;
   }
-  return true;
+  else
+  {
+    return false;
+  }
 }
 
 // Helper function to recursively search the children of a node
@@ -58,7 +54,7 @@ int recursiveChildsearch(Node &node, size_t &len_so_far, std::string &path, Suff
   for (auto childid : node.m_children)
   {
     Node currentnode = trees.m_nodes.at(childid);
-    int result = compareSubstring(currentnode, len_so_far, path);
+    bool result = compareSubstring(currentnode, len_so_far, path);
     if ((result) && (len_so_far == path.length()))
     {
       return childid;
@@ -96,8 +92,36 @@ int parentNolinksearch(SuffixTree &tree, std::string &path)
   return -1;
 }
 
-// Returns the node id of the node that matches the path in the tree for nodes that have parents
-// with suffix links, -1 otherwise
+int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &currentnode, int currentnode_id)
+{
+  size_t len_so_far = 0;
+  int parentid = currentnode.m_parent;
+  Node parentnode = tree.m_nodes.at(parentid);
+  for (auto childid : parentnode.m_children)
+  {
+    if (currentnode_id == childid)
+    {
+      continue;
+    }
+    Node currentnode = tree.m_nodes.at(childid);
+    bool result = compareSubstring(currentnode, len_so_far, path);
+    if (result)
+    {
+      if (len_so_far == path.length())
+      {
+        return childid;
+      }
+      else
+      {
+        int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
+        return node_id;
+      }
+    }
+    return -1;
+  }
+  return -1;
+}
+
 int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink)
 {
   Node currentnode = tree.m_nodes.at(parentlink);
@@ -105,73 +129,91 @@ int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink)
   int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
   return node_id;
 }
-// Function to create suffix links for every node in a directory of trees using DFS traversal
+
+// Recursive Depth First Search to find the suffix links of the nodes in the tree
+void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std::string &parent_suffix_link, int &childnode_id)
+{
+  // Case 1 parent has link
+  if (parent_suffix_link != "")
+  {
+    std::pair<std::string, int> linkinfo = decodeSuffixlink(parent_suffix_link);
+    std::string linkedtree = linkinfo.first;
+    std::ifstream ifs;
+    ifs.open("temp_trees/merged_trees/" + linkedtree + ".txt");
+    SuffixTree parenttree{ifs};
+    int link = parentWithlink(parenttree, path, linkinfo.second);
+    if (link != -1)
+    {
+      std ::cout << "parent with link works" << std::endl;
+      childnode.m_suffixLink = linkedtree + "*" + std::to_string(link);
+      // Output for testing
+    }
+  }
+
+  // Case 2 parent has no link
+  else
+  {
+    // Sub case 1: a link for the current node exist in the current tree
+    int link = same_tree_parentNolinksearch(tree, path, childnode, childnode_id);
+    if (link != -1)
+    {
+      std::cout << "same tree witout parent works" << std::endl;
+    }
+    // Sub case 2: a link for the current node exist in another tree
+    else
+    {
+      for (const auto &entry : std::filesystem::directory_iterator("temp_trees/merged_trees"))
+      {
+        std::string othertreename = entry.path().filename().string();
+        if (tree.m_nodes.at(tree.m_rootId).m_sub + ".txt" == othertreename)
+        {
+          continue;
+        }
+        std::ifstream ifs;
+        ifs.open(entry.path().string());
+        SuffixTree othertree{ifs};
+        int link = parentNolinksearch(othertree, path);
+        if (link != -1)
+        {
+          childnode.m_suffixLink = othertreename + "*" + std::to_string(link);
+          // Output for testing
+          std::cout << "Other tree without parent works" << std::endl;
+        }
+      }
+    }
+  }
+  for (auto childid : childnode.m_children)
+  {
+    parent_suffix_link = childnode.m_suffixLink;
+    path = (childnode.m_sub + tree.m_nodes.at(childid).m_sub).substr(1);
+    childnode = tree.m_nodes.at(childid);
+    childnode_id = childid;
+    recursiveDFSearch(tree, childnode, path, parent_suffix_link, childnode_id);
+  }
+}
+
+// MAIN REFACTORING //////////////////////////////////////////////////////////////
 void createSuffixlinks(std::string &directorypath)
 {
   for (const auto &entry : std::filesystem::directory_iterator(directorypath))
   {
-    // Open the tree
     std::string current_tree = entry.path().filename().string();
     std::ifstream ifs;
     ifs.open(entry.path().string());
     SuffixTree tree{ifs};
 
-    // VISUALIZATION FOR TESTING
-    tree.visualizeNoLeaves();
-
-    // We start in a depth first search from the children of the root
+    // Get the root node info
     int rootnodeid = tree.m_rootId;
     std::string rootnode_sub = tree.m_nodes.at(rootnodeid).m_sub;
-    ///////// The following code creates the suffix links for the children of the root node //////////////////////////////////////////
-    // Iterate over all the other children of the root node to find a node with the suffix string A
+
+    // Move to the children of the root node
     for (auto childid : tree.m_nodes.at(rootnodeid).m_children)
     {
-      // If the child node is the current node, skip it
-      int currentChild = childid;
-      Node &node = tree.m_nodes.at(childid);
-      std::string path = (rootnode_sub + node.m_sub).substr(1);
-      if (tree.m_nodes.at(childid).m_sub == path)
-      {
-        node.m_suffixLink = current_tree + "*" + std::to_string(childid);
-      }
-      else
-      {
-        for (const auto &entry : std::filesystem::directory_iterator(directorypath))
-        {
-          std::string otherTree_name = entry.path().filename().string();
-          std::string other_tree_path = entry.path().string();
-          std::ifstream ifs_other;
-          ifs_other.open(other_tree_path);
-          SuffixTree other_tree{ifs_other};
-          {
-            int link = parentNolinksearch(other_tree, path);
-            if (link != -1)
-            {
-              node.m_suffixLink = otherTree_name + "*" + std::to_string(link);
-              // Output for testing
-              std::cout << "The suffix link for node " << currentChild << " is " << node.m_suffixLink << std::endl;
-              std::cout << "TREE COMPLETE" << std::endl;
-              break;
-            }
-          }
-        }
-        while (true)
-        {
-          for (auto childid : tree.m_nodes.at(currentChild).m_children)
-          {
-            Node &node = tree.m_nodes.at(childid);
-            int parent = node.m_parent;
-            path = tree.m_nodes.at(childid).m_sub;
-            std::pair<std::string, int> parent_link = decodeSuffixlink(tree.m_nodes.at(parent).m_suffixLink);
-            int node_id = parentWithlink(tree, path, parent_link.second);
-            if (node_id != -1)
-            {
-              node.m_suffixLink = parent_link.first + "*" + std::to_string(parent_link.second);
-              break;
-            }
-          }
-        }
-      }
+      std::string path = rootnode_sub + tree.m_nodes.at(childid).m_sub;
+      Node childnode = tree.m_nodes.at(childid);
+      std::string suffix = (rootnode_sub + childnode.m_sub).substr(1);
+      std::string parent_suffix_link = tree.m_nodes.at(childnode.m_parent).m_suffixLink;
+      recursiveDFSearch(tree, childnode, suffix, parent_suffix_link, childid);
     }
   }
 }

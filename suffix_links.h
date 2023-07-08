@@ -13,4 +13,8 @@ int parentNolinksearch(SuffixTree &tree, std::string &path);
 
 int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink);
 
+int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &currentnode, int currentnode_id);
+
 void createSuffixlinks(std::string &directorypath);
+
+void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std::string &parent_suffix_link, int &childnode_id);
