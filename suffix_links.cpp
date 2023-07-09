@@ -24,18 +24,17 @@ std::string getNodepathsofar(SuffixTree &tree, int linknode_id)
 }
 
 // Helper function to compare the substring of a node to the path
-bool compareSubstring(Node &node, size_t &len_so_far, std::string &path)
+int compareSubstring(Node &node, size_t &len_so_far, std::string &path)
 {
   std::string currentnodesub = node.m_sub;
   int result = path.substr(len_so_far).rfind(currentnodesub, 0);
   if (result == 0)
   {
-    len_so_far += currentnodesub.length();
-    return true;
+    return currentnodesub.length();
   }
   else
   {
-    return false;
+    return -1;
   }
 }
 
@@ -45,18 +44,22 @@ int recursiveChildsearch(Node &node, size_t &len_so_far, std::string &path, Suff
   for (auto childid : node.m_children)
   {
     Node currentnode = trees.m_nodes.at(childid);
-    bool result = compareSubstring(currentnode, len_so_far, path);
-    if ((result) && (len_so_far == path.length()))
+    int result = compareSubstring(currentnode, len_so_far, path);
+    if ((result > 0))
     {
-      return childid;
-    }
-    else if (result)
-    {
-      recursiveChildsearch(currentnode, len_so_far, path, trees);
-    }
-    else
-    {
-      continue;
+      len_so_far += result;
+      if (len_so_far == path.length()) {
+        return childid;
+      } else {
+
+        int childOfChildId = recursiveChildsearch(currentnode, len_so_far, path, trees);
+
+        if (childOfChildId > 0) {
+          return childOfChildId;
+        } else {
+          len_so_far -= result;
+        }
+      }
     }
   }
   return -1;
@@ -67,8 +70,8 @@ int parentNolinksearch(SuffixTree &tree, std::string &path)
 {
   size_t len_so_far = 0;
   Node currentnode = tree.m_nodes.at(tree.m_rootId);
-  bool result = compareSubstring(currentnode, len_so_far, path);
-  if (result)
+  int result = compareSubstring(currentnode, len_so_far, path);
+  if (result > 0)
   {
     if (len_so_far == path.length())
     {
@@ -76,8 +79,12 @@ int parentNolinksearch(SuffixTree &tree, std::string &path)
     }
     else
     {
-      int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
-      return node_id;
+       int childOfChildId = recursiveChildsearch(currentnode, len_so_far, path, tree);
+        if (childOfChildId > 0) {
+          return childOfChildId;
+        } else {
+          len_so_far -= result;
+        }
     }
   }
   return -1;

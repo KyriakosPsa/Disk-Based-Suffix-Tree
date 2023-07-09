@@ -3,7 +3,7 @@
 #include "node.h"
 #include "suffix_tree.h"
 
-bool compareSubstring(Node &node, int &len_so_far, std::string &path);
+int compareSubstring(Node &node, int &len_so_far, std::string &path);
 
 int recursiveChildsearch(Node &node, int &len_so_far, std::string &path);
 
