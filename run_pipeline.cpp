@@ -4,6 +4,7 @@
 #include "suffix_tree.h"
 #include "suffix_links.h"
 #include "partitioning.h"
+#include "node.h"
 #include "utils.h"
 #include <string>
 #include <iostream>
@@ -118,6 +119,38 @@ void mergeTrees(const std::vector<std::string> &prefixes, size_t sequenceLength)
   }
 }
 
+void createSuffixlinks(std::vector<std::string> &prefixes)
+{
+  if (!std::filesystem::is_directory("./temp_trees/final_trees") || !std::filesystem::exists("./temp_trees/final_trees"))
+  {
+    std::filesystem::create_directory("./temp_trees/final_trees");
+  }
+  for (std::string prefix : prefixes)
+  {
+    std::ifstream ifs;
+    ifs.open("./temp_trees/merged_trees/" + prefix + ".txt");
+    SuffixTree tree{ifs};
+
+    // Get the root node info
+    int rootnodeid = tree.m_rootId;
+    std::string rootnode_sub = tree.m_nodes.at(rootnodeid).m_sub;
+
+    // Move to the children of the root node
+    for (auto childid : tree.m_nodes.at(rootnodeid).m_children)
+    {
+      std::string suffix = (rootnode_sub + tree.m_nodes.at(childid).m_sub).substr(1);
+      Node::SuffixLink parent_suffix_link = tree.m_nodes.at(tree.m_nodes.at(childid).m_parent).m_suffixLink;
+      recursiveDFSearch(prefix, tree, tree.m_nodes.at(childid), suffix, parent_suffix_link, childid, prefixes);
+      if (tree.m_nodes.at(childid).m_suffixLink.nodeId != -1)
+      {
+        std::cout << std::to_string(childid) << std::endl;
+        Node test = tree.m_nodes.at(childid);
+      }
+    }
+    tree.serialize("./temp_trees/final_trees/" + prefix + ".txt");
+  }
+}
+
 int main()
 {
   std::string sequence = readSequence("input/NC_045512v2.fa");
@@ -140,8 +173,7 @@ int main()
   constructTrees("temp_prfx");
   splitTrees(prefixes);
   mergeTrees(prefixes, sequence.length());
-  std::string mergedTreePath = "./temp_trees/merged_trees/";
-  createSuffixlinks(mergedTreePath);
+  createSuffixlinks(prefixes);
 }
 
 // Make list of variable length prefixes

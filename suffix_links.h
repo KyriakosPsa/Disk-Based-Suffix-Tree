@@ -3,8 +3,6 @@
 #include "node.h"
 #include "suffix_tree.h"
 
-std::pair<std::string, int> decodeSuffixlink(const std::string &suffixlink);
-
 bool compareSubstring(Node &node, int &len_so_far, std::string &path);
 
 int recursiveChildsearch(Node &node, int &len_so_far, std::string &path);
@@ -15,6 +13,6 @@ int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink);
 
 int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &currentnode, int currentnode_id);
 
-void createSuffixlinks(std::string &directorypath);
+void recursiveDFSearch(std::string &treeName, SuffixTree &tree, Node &childnode, std::string &path, Node::SuffixLink &parent_suffix_link, int &childnode_id, std::vector<std::string> &prefixes);
 
-void recursiveDFSearch(SuffixTree &tree, Node &childnode, std::string &path, std::string &parent_suffix_link, int &childnode_id);
+std::string getNodepathsofar(SuffixTree &tree, int linknode_id);

@@ -10,7 +10,16 @@ public:
     std::string m_sub{""};
     std::vector<int> m_children{};
     int m_parent{-1};
-    std::string m_suffixLink{""};
+
+    struct SuffixLink
+    {
+        std::string treeFile = "";
+        int nodeId = -1;
+    };
+
+    SuffixLink m_suffixLink;
+
+    SuffixLink decodeSuffixlink(const std::string &suffixlink);
 
     Node();
 
