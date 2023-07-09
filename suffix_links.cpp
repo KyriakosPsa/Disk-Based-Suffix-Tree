@@ -24,10 +24,10 @@ std::string getNodepathsofar(SuffixTree &tree, int linknode_id)
 }
 
 // Helper function to compare the substring of a node to the path
-int compareSubstring(Node &node, size_t &len_so_far, std::string &path)
+int compareSubstring(Node &node, int &len_so_far, std::string &path)
 {
   std::string currentnodesub = node.m_sub;
-  int result = path.substr(len_so_far).rfind(currentnodesub, 0);
+  int result = path.substr(static_cast<size_t>(len_so_far)).rfind(currentnodesub, 0);
   if (result == 0)
   {
     return currentnodesub.length();
@@ -39,7 +39,7 @@ int compareSubstring(Node &node, size_t &len_so_far, std::string &path)
 }
 
 // Helper function to recursively search the children of a node
-int recursiveChildsearch(Node &node, size_t &len_so_far, std::string &path, SuffixTree &trees)
+int recursiveChildsearch(Node &node, int &len_so_far, std::string &path, SuffixTree &trees)
 {
   for (auto childid : node.m_children)
   {
@@ -48,12 +48,10 @@ int recursiveChildsearch(Node &node, size_t &len_so_far, std::string &path, Suff
     if ((result > 0))
     {
       len_so_far += result;
-      if (len_so_far == path.length()) {
+      if (len_so_far == static_cast<int>(path.length())) {
         return childid;
       } else {
-
         int childOfChildId = recursiveChildsearch(currentnode, len_so_far, path, trees);
-
         if (childOfChildId > 0) {
           return childOfChildId;
         } else {
@@ -68,18 +66,19 @@ int recursiveChildsearch(Node &node, size_t &len_so_far, std::string &path, Suff
 // Returns the node id of the node that matches the path in the tree, -1 otherwise
 int parentNolinksearch(SuffixTree &tree, std::string &path)
 {
-  size_t len_so_far = 0;
+  int len_so_far = 0;
   Node currentnode = tree.m_nodes.at(tree.m_rootId);
   int result = compareSubstring(currentnode, len_so_far, path);
   if (result > 0)
   {
-    if (len_so_far == path.length())
+    len_so_far += result;
+    if (len_so_far == static_cast<int>(path.length()))
     {
       return tree.m_rootId;
     }
     else
     {
-       int childOfChildId = recursiveChildsearch(currentnode, len_so_far, path, tree);
+        int childOfChildId = recursiveChildsearch(currentnode, len_so_far, path, tree);
         if (childOfChildId > 0) {
           return childOfChildId;
         } else {
@@ -92,7 +91,7 @@ int parentNolinksearch(SuffixTree &tree, std::string &path)
 
 int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &currentnode, int currentnode_id)
 {
-  size_t len_so_far = 0;
+  int len_so_far = 0;
   int parentid = currentnode.m_parent;
   Node parentnode = tree.m_nodes.at(parentid);
   for (auto childid : parentnode.m_children)
@@ -102,20 +101,24 @@ int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &curr
       continue;
     }
     Node currentnode = tree.m_nodes.at(childid);
-    bool result = compareSubstring(currentnode, len_so_far, path);
-    if (result)
+    int result = compareSubstring(currentnode, len_so_far, path);
+    if (result > 0)
     {
-      if (len_so_far == path.length())
+      len_so_far += result;
+      if (len_so_far == static_cast<int>(path.length()))
       {
         return childid;
       }
       else
       {
         int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
-        return node_id;
+        if (node_id > 0) {
+          return node_id;
+        } else {
+          len_so_far -= result;
+        }
       }
     }
-    return -1;
   }
   return -1;
 }
@@ -123,7 +126,8 @@ int same_tree_parentNolinksearch(SuffixTree &tree, std::string &path, Node &curr
 int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink)
 {
   Node currentnode = tree.m_nodes.at(parentlink);
-  size_t len_so_far = 0;
+  // TODO
+  int len_so_far = 0;
   int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
   return node_id;
 }
