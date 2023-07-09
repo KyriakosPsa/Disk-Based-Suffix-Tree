@@ -127,7 +127,7 @@ int parentWithlink(SuffixTree &tree, std::string &path, int &parentlink)
 {
   Node currentnode = tree.m_nodes.at(parentlink);
   // TODO
-  int len_so_far = 0;
+  int len_so_far = static_cast<int>(path.length());
   int node_id = recursiveChildsearch(currentnode, len_so_far, path, tree);
   return node_id;
 }
