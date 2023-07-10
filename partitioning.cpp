@@ -10,7 +10,7 @@
 //   }
 
   void PartitionUtility::setFileName(std::string &entry) {
-    m_fileName = "./temp_prfx/" + entry;
+    m_fileName = "./temp_partition/" + entry;
   }
 
   std::string PartitionUtility::getPartitionString(std::string &entry) {

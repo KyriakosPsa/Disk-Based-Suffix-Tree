@@ -116,8 +116,8 @@ void partitionFile(std::string &inputFileName, const size_t t)
   }
   std::vector<char> buffer(t); // Define a region in memory to contain the t characters to read
   int filecount = 0;
-  if (!std::filesystem::is_directory("temp_prfx") || !std::filesystem::exists("temp_prfx")) {
-    std::filesystem::create_directory("temp_prfx");
+  if (!std::filesystem::is_directory("temp_partition") || !std::filesystem::exists("temp_partition")) {
+    std::filesystem::create_directory("temp_partition");
   }
   while (!inputFile.eof())
   {
@@ -126,7 +126,7 @@ void partitionFile(std::string &inputFileName, const size_t t)
     int bytesRead = inputFile.gcount();    // Get the number of characters read
     if (bytesRead > 0)
     {
-      const std::string tmpfilename = "./temp_prfx/prfx_" + std::to_string(filecount) + ".txt";
+      const std::string tmpfilename = "./temp_partition/prfx_" + std::to_string(filecount) + ".txt";
       std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
       if (!outputFile)
       {
@@ -151,13 +151,13 @@ int partitionSequence(std::string &inputSequence, const size_t t)
 // Open input file and exhaustively partition it in t files : prfx_1.txt, to prfx_2.txt etc.
 {
   int fileCount{0};
-  if (!std::filesystem::is_directory("temp_prfx") || !std::filesystem::exists("temp_prfx")) {
-    std::filesystem::create_directory("temp_prfx");
+  if (!std::filesystem::is_directory("temp_partition") || !std::filesystem::exists("temp_partition")) {
+    std::filesystem::create_directory("temp_partition");
   }
   for (size_t i = 0; i < inputSequence.size(); i += t)
   {
     std:: string sub = inputSequence.substr(i, t);
-    const std::string tmpfilename = "./temp_prfx/prfx_" + std::to_string(fileCount) + ".txt";
+    const std::string tmpfilename = "./temp_partition/prfx_" + std::to_string(fileCount) + ".txt";
     std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
     if (!outputFile)
     {
