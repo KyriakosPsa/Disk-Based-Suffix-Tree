@@ -70,7 +70,7 @@ void removeFiles(const std::string &mode)
   int filecount{0};     // the id tag used in our naming shceme
   if (mode == "prefix") // prefix mode, delete prefix files
   {
-    const std::string fileprefix = "prfx_";
+    const std::string fileprefix = "partition_";
     const std::string filesuffix = ".txt";
     while (status == 0)
     {
@@ -126,7 +126,7 @@ void partitionFile(std::string &inputFileName, const size_t t)
     int bytesRead = inputFile.gcount();    // Get the number of characters read
     if (bytesRead > 0)
     {
-      const std::string tmpfilename = "./temp_partition/prfx_" + std::to_string(filecount) + ".txt";
+      const std::string tmpfilename = "./temp_partition/partition_" + std::to_string(filecount) + ".txt";
       std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
       if (!outputFile)
       {
@@ -157,7 +157,7 @@ int partitionSequence(std::string &inputSequence, const size_t t)
   for (size_t i = 0; i < inputSequence.size(); i += t)
   {
     std:: string sub = inputSequence.substr(i, t);
-    const std::string tmpfilename = "./temp_partition/prfx_" + std::to_string(fileCount) + ".txt";
+    const std::string tmpfilename = "./temp_partition/partition_" + std::to_string(fileCount) + ".txt";
     std::ofstream outputFile(tmpfilename); // Open output file stream in "tmp" folder
     if (!outputFile)
     {
