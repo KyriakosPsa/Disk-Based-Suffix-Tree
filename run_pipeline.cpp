@@ -10,7 +10,33 @@
 #include <iostream>
 #include <filesystem>
 
-void constructTrees(const std::string &dir)
+void splitTrees(const std::vector<std::string> &prefixes, SuffixTree &tree, std::string &partitionName)
+{
+  std::ifstream ifs;
+  std::vector<int> location;
+  for (auto pre : prefixes)
+  {
+    if (!std::filesystem::is_directory("./temp_trees/" + pre) || !std::filesystem::exists("./temp_trees/" + pre))
+    {
+      std::filesystem::create_directory("./temp_trees/" + pre);
+    }
+  }
+
+  for (const auto &pre : prefixes)
+    {
+      std::vector<int> location = tree.queryPrefix(pre);
+      if (!(location.empty()))
+      {
+        SuffixTree newTree = *(splitTree(tree, pre, location));
+        if (newTree.m_nodes.at(newTree.m_rootId).m_sub.length() > 0) {
+          newTree.serialize("./temp_trees/" + pre + '/' + partitionName);
+        }
+      }
+      // need prefix location here.
+    }
+}
+
+void constructTrees(const std::string &dir, const std::vector<std::string> &prefixes)
 {
   std::string partition;
   if (!std::filesystem::is_directory("temp_trees") || !std::filesystem::exists("temp_trees"))
@@ -30,57 +56,8 @@ void constructTrees(const std::string &dir)
     partition = pfr.getPartitionString(partitionName);
     // std::cout << partition.length() << '\n';
     SuffixTree tree{partition};
-    // std::cout << tree.m_nodes.size() << '\n';
-    // std::cout << tree.m_leaves.size() << '\n';
-    // std::ofstream file;
-    // file.open("./temp_trees/partition_trees/vis" + partitionName);
-    // tree.visualizeNoLeaves(file);
-    // file.close();
-    // bool implicit{true};
-    // std::string candidatePrefix;
-    // // if this is the final partition, tree is already implicit
-    // if (pfr.m_finalPartition) {
-    //   implicit = false;
-    // }
-    // while (implicit) {
-    //   candidatePrefix += pfr.getAdditionalCharacter();
-    //   bool unique = tree.isUnique(candidatePrefix);
-    //   if (unique) {
-    //     std::cout << candidatePrefix << '\n';
-    //     tree.makeExplicit(candidatePrefix);
-    //     implicit = false;
-    //   }
-    // }
-    tree.serialize("./temp_trees/partition_trees/" + partitionName);
-  }
-}
-
-void splitTrees(const std::vector<std::string> &prefixes)
-{
-  std::ifstream ifs;
-  std::vector<int> location;
-  for (auto pre : prefixes)
-  {
-    if (!std::filesystem::is_directory("./temp_trees/" + pre) || !std::filesystem::exists("./temp_trees/" + pre))
-    {
-      std::filesystem::create_directory("./temp_trees/" + pre);
-    }
-  }
-
-  for (const auto &entry : std::filesystem::directory_iterator("./temp_trees/partition_trees/"))
-  {
-    ifs.open(entry.path());
-    SuffixTree tree{ifs};
-    for (const auto &pre : prefixes)
-    {
-      std::vector<int> location = tree.queryPrefix(pre);
-      if (!(location.empty()))
-      {
-        SuffixTree newTree = *(splitTree(tree, pre, location));
-        newTree.serialize("./temp_trees/" + pre + '/' + entry.path().filename().string());
-      }
-      // need prefix location here.
-    }
+    splitTrees(prefixes, tree, partitionName);
+    // tree.serialize("./temp_trees/partition_trees/" + partitionName);
   }
 }
 
@@ -143,11 +120,12 @@ void createSuffixlinks(std::vector<std::string> &prefixes)
       recursiveDFSearch(prefix, tree, tree.m_nodes.at(childid), suffix, parent_suffix_link, childid, prefixes);
       if (tree.m_nodes.at(childid).m_suffixLink.nodeId != -1)
       {
-        std::cout << std::to_string(childid) << std::endl;
+        // std::cout << std::to_string(childid) << std::endl;
         Node test = tree.m_nodes.at(childid);
       }
     }
     tree.serialize("./temp_trees/final_trees/" + prefix + ".txt");
+    std::cout << "./temp_trees/final_trees/" + prefix + ".txt" << '\n';
   }
 }
 
@@ -170,10 +148,13 @@ int main()
   std::cout << prefixes.size() << '\n';
 
   partitionSequence(sequence, t);
-  constructTrees("temp_prfx");
-  splitTrees(prefixes);
+  std::cout << "Partitioning Done" << '\n';
+  constructTrees("temp_prfx", prefixes);
+  std::cout << "Partition Phase Done" << '\n';
   mergeTrees(prefixes, sequence.length());
+  std::cout << "Merging Phase Done" << '\n';
   createSuffixlinks(prefixes);
+  std::cout << "Suffix Link Phase Done" << '\n';
 }
 
 // Make list of variable length prefixes

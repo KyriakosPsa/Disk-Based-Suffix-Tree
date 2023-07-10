@@ -149,12 +149,12 @@ void recursiveDFSearch(std::string &treeName, SuffixTree &tree, Node &childnode,
       childnode.m_suffixLink.nodeId = link;
 
       // OUTPUT FOR TESTING
-      std ::cout << "\nparent with link works" << std::endl;
-      std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
-                << "node " << std::to_string(link) << " with sub: " << parenttree.m_nodes.at(link).m_sub << std::endl;
-      std::cout << "Reporting link node path:" << std::endl;
-      std::string linkpath = getNodepathsofar(parenttree, link);
-      std::cout << linkpath << std::endl;
+      // std ::cout << "\nparent with link works" << std::endl;
+      // std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
+      //           << "node " << std::to_string(link) << " with sub: " << parenttree.m_nodes.at(link).m_sub << std::endl;
+      // std::cout << "Reporting link node path:" << std::endl;
+      // std::string linkpath = getNodepathsofar(parenttree, link);
+      // std::cout << linkpath << std::endl;
     }
   }
 
@@ -169,13 +169,13 @@ void recursiveDFSearch(std::string &treeName, SuffixTree &tree, Node &childnode,
       childnode.m_suffixLink.nodeId = link;
 
       // OUTPUT FOR TESTING
-      std::cout << "\nsame tree without parent works" << std::endl;
-      std ::cout << "parent with link works" << std::endl;
-      std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
-                << "node " << std::to_string(link) << " with sub: " << tree.m_nodes.at(link).m_sub << std::endl;
-      std::cout << "Reporting link node path:" << std::endl;
-      std::string linkpath = getNodepathsofar(tree, link);
-      std::cout << linkpath << std::endl;
+      // std::cout << "\nsame tree without parent works" << std::endl;
+      // std ::cout << "parent with link works" << std::endl;
+      // std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
+      //           << "node " << std::to_string(link) << " with sub: " << tree.m_nodes.at(link).m_sub << std::endl;
+      // std::cout << "Reporting link node path:" << std::endl;
+      // std::string linkpath = getNodepathsofar(tree, link);
+      // std::cout << linkpath << std::endl;
     }
     // Sub case 2: a link for the current node exist in another tree
     else
@@ -210,12 +210,12 @@ void recursiveDFSearch(std::string &treeName, SuffixTree &tree, Node &childnode,
         childnode.m_suffixLink.nodeId = link;
 
         // Output for testing
-        std::cout << "\nOther tree without parent works" << std::endl;
-        std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
-                  << "node " << std::to_string(link) << " with sub: " << othertree.m_nodes.at(link).m_sub << std::endl;
-        std::cout << "Reporting link node path:" << std::endl;
-        std::string linkpath = getNodepathsofar(othertree, link);
-        std::cout << linkpath << std::endl;
+        // std::cout << "\nOther tree without parent works" << std::endl;
+        // std::cout << "link: for path " << path << " of node " << std::to_string(childnode_id) << " is "
+        //           << "node " << std::to_string(link) << " with sub: " << othertree.m_nodes.at(link).m_sub << std::endl;
+        // std::cout << "Reporting link node path:" << std::endl;
+        // std::string linkpath = getNodepathsofar(othertree, link);
+        // std::cout << linkpath << std::endl;
       }
     }
   }

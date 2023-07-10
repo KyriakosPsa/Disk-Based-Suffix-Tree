@@ -289,10 +289,6 @@ void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &chi
 {
     for (auto child : m_nodes.at(node).m_children)
     {
-        if (child == 49030)
-        {
-            std::cout << 49030 << '\n';
-        }
         children.push_back(std::make_pair(child, m_nodes.at(child)));
         this->getAllChildren(child, children);
     }
@@ -731,7 +727,7 @@ void SuffixTree::mergeChildren(int leftNodeId, int rightNodeId, SuffixTree &righ
 
 SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int> prefixLocation)
 {
-    std::string rootString;
+    std::string rootString{""};
     int finalNode = prefixLocation.back();
     std::string pathString;
     for (int node : prefixLocation)
@@ -741,27 +737,22 @@ SuffixTree *splitTree(SuffixTree &tree, const std::string &str, std::vector<int>
 
     if (pathString.length() > str.length())
     {
-        if (pathString.starts_with(str))
-        {
-            rootString = pathString;
-        }
-        else
-        {
-            rootString = str;
-        }
-    }
-    else
-    {
+        rootString = pathString;
+    } else if (pathString.length() == str.length()) {
         rootString = str;
     }
 
-    // add new root node and remove it as child from parent in old tree
-    Node newRoot{rootString, tree.m_nodes.at(finalNode).m_children, -1};
-    std::vector<std::pair<int, Node>> newNodes;
-    newNodes.push_back(std::make_pair(finalNode, newRoot));
-    tree.removeAsChild(finalNode);
+    if (rootString.length() > 0) {
+        // add new root node and remove it as child from parent in old tree
+        Node newRoot{rootString, tree.m_nodes.at(finalNode).m_children, -1};
+        std::vector<std::pair<int, Node>> newNodes;
+        newNodes.push_back(std::make_pair(finalNode, newRoot));
+        tree.removeAsChild(finalNode);
 
-    tree.getAllChildren(finalNode, newNodes);
-    tree.deleteNode(newNodes);
-    return new SuffixTree(newNodes, str.length(), finalNode);
+        tree.getAllChildren(finalNode, newNodes);
+        tree.deleteNode(newNodes);
+        return new SuffixTree(newNodes, str.length(), finalNode);
+    }
+    
+    return new SuffixTree("");
 }
