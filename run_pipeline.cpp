@@ -30,6 +30,8 @@ void splitTrees(const std::vector<std::string> &prefixes, SuffixTree &tree, std:
         SuffixTree newTree = *(splitTree(tree, pre, location));
         if (newTree.m_nodes.at(newTree.m_rootId).m_sub.length() > 0) {
           newTree.serialize("./temp_trees/" + pre + '/' + partitionName);
+          std::string fName = "./temp_trees/" + pre + "/vis_" + partitionName;
+          newTree.visualizeNoLeaves(fName);
         }
       }
       // need prefix location here.
@@ -88,6 +90,8 @@ void mergeTrees(const std::vector<std::string> &prefixes, size_t sequenceLength)
     baseTree.makeLeaves();
     // std::cout << pre << " leaves: " << baseTree.m_leaves.size() << '\n';
     baseTree.serialize("./temp_trees/merged_trees/" + pre + ".txt");
+    std::string fName = "./temp_trees/merged_trees/vis_" + pre + ".txt";
+    baseTree.visualizeNoLeaves(fName);
     // std::ofstream save;
     // save.open("./temp_trees/merged_trees/" + pre + "_vis.txt");
     // baseTree.visualizeNoLeaves(save);
@@ -125,13 +129,15 @@ void createSuffixlinks(std::vector<std::string> &prefixes)
       }
     }
     tree.serialize("./temp_trees/final_trees/" + prefix + ".txt");
+    std::string fName = "./temp_trees/final_trees/vis_" + prefix + ".txt";
+    tree.visualizeNoLeaves(fName);
     std::cout << "./temp_trees/final_trees/" + prefix + ".txt" << '\n';
   }
 }
 
 int main()
 {
-  std::string sequence = readSequence("input/NC_045512v2.fa");
+  std::string sequence = readSequence("input/medium.fasta");
   clearDir("temp_trees");
   clearDir("temp_prfx");
   // // Memory limits experimental section

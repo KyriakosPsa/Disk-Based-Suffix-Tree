@@ -248,8 +248,10 @@ void SuffixTree::visualizeNoLeaves()
     f(m_rootId, "");
 }
 
-void SuffixTree::visualizeNoLeaves(std::ofstream &outputFile)
+void SuffixTree::visualizeNoLeaves(std::string &fileName)
 {
+    std::ofstream outputFile;
+    outputFile.open(fileName);
     if (m_nodes.size() == 0)
     {
         outputFile << "<empty>\n";
@@ -283,6 +285,7 @@ void SuffixTree::visualizeNoLeaves(std::ofstream &outputFile)
     };
 
     f(m_rootId, "");
+    outputFile.close();
 }
 
 void SuffixTree::getAllChildren(int node, std::vector<std::pair<int, Node>> &children)

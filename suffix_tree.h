@@ -37,7 +37,7 @@ public:
 
     void visualizeNoLeaves();
 
-    void visualizeNoLeaves(std::ofstream &outputFile);
+    void visualizeNoLeaves(std::string &fileName);
 
     void getAllChildren(int node, std::vector<std::pair<int, Node>> &children);
 
