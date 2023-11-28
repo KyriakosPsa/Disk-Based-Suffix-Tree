@@ -13,7 +13,6 @@
 
 ## _Folders_
 - **./Project Report** contains the technical report of the project.
-- **./graveyard** contains methods initialy implemented but discarded in the final version of the algorithm.
 - **./input** contains the input sequence files for the algorithm.
 - **./temp_prfx** contains the identified variable length prefixes.
 - **./temp_partition** contains the partitioned input sequence files.
