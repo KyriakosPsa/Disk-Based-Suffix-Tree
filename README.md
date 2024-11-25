@@ -1,3 +1,13 @@
+# Overview
+This study presents a replication attempt in C++ of the study by Phoophakdee Benjarath, and Mohammed J. Zaki., on
+Genome-scale disk-based suffix tree indexing. Our goal was to replicate the four-stage of researchers from scratch and
+evaluate their original findings. However, we encountered challenges due to the limited guidance for its implementation. As
+a result, instead of a one-to-one replication of the study, we decided to implement our interpretation of the algorithm, this
+solution while functional and able to replicate the algorithm’s main stages, had its own limitations and was unable to be
+utilized for genome-scale sequences. This experience showcases the importance of thoroughness in reporting research to
+ensure the reproducibility and reliability of findings.
+
+
 # File/Folder descriptions
 
 ## _Files_
