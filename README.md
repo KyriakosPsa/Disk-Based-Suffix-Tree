@@ -7,6 +7,42 @@ solution while functional and able to replicate the algorithm’s main stages, h
 utilized for genome-scale sequences. This experience showcases the importance of thoroughness in reporting research to
 ensure the reproducibility and reliability of findings.
 
+An in-depth technical view can be accessed at `./Project Report/Technical_Report.pdf`, we provide some main figures below for ease of access:
+
+Genetic sequence Suffix Tree example:
+
+![image](https://github.com/user-attachments/assets/5ff94da7-46fc-49a2-8223-56f2e343e39a)
+
+
+Algorithm stages:
+
+![image](https://github.com/user-attachments/assets/018a1e8a-995a-433e-a67d-3fae5e0420bf)
+
+
+Suffix Tree and Node class variables:
+
+![image](https://github.com/user-attachments/assets/1019d518-3f8d-45d5-934b-a7945b32b2c3)
+
+Algorithm 1, Variable length prefix creation: 
+
+![image](https://github.com/user-attachments/assets/3333d1fe-6453-43b8-a968-8a9a789185b7)
+
+Algorithm 2, Sequence partitioning:
+
+![image](https://github.com/user-attachments/assets/73e0e678-6f44-4ee6-abb7-fb5d8f5aa171)
+
+Algorithm 3, Suffix tree construction:
+
+![image](https://github.com/user-attachments/assets/6fc7d0a2-41df-487f-95de-14a58f1243be)
+
+Algorithm 4, Querying partition tree for prefix:
+
+![image](https://github.com/user-attachments/assets/70c82b19-cde2-4b26-8ee2-b35f197502e4)
+
+Algorithm 5, Tree merging:
+
+![image](https://github.com/user-attachments/assets/3bbb93b9-24cb-41d1-bb69-89e1496ee274)
+
 
 # File/Folder descriptions
 
